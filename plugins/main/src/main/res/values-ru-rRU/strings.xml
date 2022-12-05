@@ -51,6 +51,9 @@
     <string name="smscommunicator_tt_set">Цель %1$s на %2$d минут установлена успешно</string>
     <string name="smscommunicator_tt_canceled">Временная цель успешно отменена</string>
     <string name="smscommunicator_remote_commands_allowed">Разрешить команды через смс</string>
+    <string name="smscommunicator_add_pump_status">Добавлять статус помпы в ответ</string>
+    <string name="smscommunicator_report_to_all">Отправлять отчет всем</string>
+    <string name="smscommunicator_report_to_all_summary">Выключение этой опции будет сообщать результат команды только ее отправителю</string>
     <string name="smscommunicator_loop_has_been_disabled">Зцикл остановлен</string>
     <string name="smscommunicator_loop_has_been_enabled">Зцикл активирован</string>
     <string name="smscommunicator_loop_is_enabled">Зцикл работает</string>

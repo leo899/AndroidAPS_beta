@@ -76,7 +76,9 @@ enum class BooleanKey(
     SmsAllowRemoteCommands("smscommunicator_remotecommandsallowed", false),
     SmsReportPumpUnreachable("smscommunicator_report_pump_unreachable", true),
     SmsReportProfileSwitch("smscommunicator_report_profile_switch", true),
+    SmsAddPumpStatus("smscommunicator_add_pump_status", false, dependency = SmsAllowRemoteCommands),
     SmsEnableOtp("smscommunicator_enable_otp", true, dependency = SmsAllowRemoteCommands),
+    SmsReportToAll("smscommunicator_report_to_all", true, dependency = SmsAllowRemoteCommands),
 
     VirtualPumpStatusUpload("virtualpump_uploadstatus", false, showInNsClientMode = false),
     GarminLocalHttpServer("communication_http", false, defaultedBySM = true, hideParentScreenIfHidden = true),
