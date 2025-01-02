@@ -13,12 +13,15 @@ import app.aaps.core.interfaces.constraints.ConstraintsChecker
 import app.aaps.core.interfaces.constraints.PluginConstraints
 import app.aaps.core.interfaces.constraints.Safety
 import app.aaps.core.interfaces.db.PersistenceLayer
+import app.aaps.core.interfaces.iob.GlucoseStatusProvider
+import app.aaps.core.interfaces.iob.IobCobCalculator
 import app.aaps.core.interfaces.logging.AAPSLogger
 import app.aaps.core.interfaces.notifications.Notification
 import app.aaps.core.interfaces.plugin.ActivePlugin
 import app.aaps.core.interfaces.plugin.PluginBase
 import app.aaps.core.interfaces.plugin.PluginDescription
 import app.aaps.core.interfaces.profile.Profile
+import app.aaps.core.interfaces.profile.ProfileFunction
 import app.aaps.core.interfaces.pump.defs.determineCorrectBolusSize
 import app.aaps.core.interfaces.pump.defs.determineCorrectExtendedBolusSize
 import app.aaps.core.interfaces.resources.ResourceHelper
@@ -32,17 +35,27 @@ import app.aaps.core.keys.BooleanKey
 import app.aaps.core.keys.IntKey
 import app.aaps.core.keys.Preferences
 import app.aaps.core.keys.StringKey
+import app.aaps.core.keys.UnitDoubleKey
+import app.aaps.core.interfaces.utils.MidnightTime
 import app.aaps.core.objects.constraints.ConstraintObject
 import app.aaps.core.objects.extensions.put
 import app.aaps.core.objects.extensions.store
+import app.aaps.core.validators.DefaultEditTextValidator
+import app.aaps.core.validators.EditTextValidator
 import app.aaps.core.validators.preferences.AdaptiveDoublePreference
 import app.aaps.core.validators.preferences.AdaptiveIntPreference
 import app.aaps.core.validators.preferences.AdaptiveListPreference
+import app.aaps.core.validators.preferences.AdaptiveStringPreference
 import app.aaps.core.validators.preferences.AdaptiveSwitchPreference
+import app.aaps.core.validators.preferences.AdaptiveUnitPreference
 import app.aaps.plugins.constraints.R
+import org.joda.time.LocalTime
+import org.joda.time.format.ISODateTimeFormat
 import org.json.JSONObject
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.hours
 
 @Singleton
 class SafetyPlugin @Inject constructor(
@@ -56,7 +69,10 @@ class SafetyPlugin @Inject constructor(
     private val persistenceLayer: PersistenceLayer,
     private val dateUtil: DateUtil,
     private val uiInteraction: UiInteraction,
-    private val decimalFormatter: DecimalFormatter
+    private val decimalFormatter: DecimalFormatter,
+    private val glucoseStatusProvider: GlucoseStatusProvider,
+    private val profileFunction: ProfileFunction,
+    private val iobCobCalculator: IobCobCalculator
 ) : PluginBase(
     PluginDescription()
         .mainType(PluginType.CONSTRAINTS)
@@ -92,9 +108,54 @@ class SafetyPlugin @Inject constructor(
         return value
     }
 
+    private fun checkNightMode(): String? {
+        if (!preferences.get(BooleanKey.NightMode)) return "disabled in settings"
+
+        val glucoseStatus = glucoseStatusProvider.glucoseStatusData
+        if (glucoseStatus == null) return "no glucose data"
+        val bg = glucoseStatus.glucose
+
+        val currentTimeMillis = System.currentTimeMillis()
+        val midnight = MidnightTime.calc(currentTimeMillis)
+        val start = midnight + LocalTime.parse(preferences.get(StringKey.NightModeBegin), ISODateTimeFormat.timeElementParser()).millisOfDay
+        val end = midnight + LocalTime.parse(preferences.get(StringKey.NightModeEnd), ISODateTimeFormat.timeElementParser()).millisOfDay
+        val offset = preferences.get(UnitDoubleKey.NightModeBgOffset)
+
+        val active =
+            if (end > start) currentTimeMillis in start..<end
+            else (currentTimeMillis in (start - 86400000)..<end || currentTimeMillis in start..<(end + 86400000))
+        if (!active) return "inactive period"
+
+        val profile = profileFunction.getProfile() ?: return "no profile"
+        val profileTarget = profile?.getTargetMgdl() ?: 99.0
+        val cobInfo = iobCobCalculator.getCobInfo("SafetyPlugin_NightMode")
+        val cob = cobInfo.displayCob
+        if (preferences.get(BooleanKey.NightModeWithCOB) && cob != null) {
+            if (cob > 0) return "COB > 0"
+        }
+        
+        val tt = persistenceLayer.getTemporaryTargetActiveAt(dateUtil.now())
+        if (preferences.get(BooleanKey.NightModeLowTT) && tt != null) {
+            // If low TT is detected
+            if (tt.highTarget.roundToInt() < profileTarget) return "low TT"
+        }
+
+        val blockSMB = bg < (profileTarget + offset)
+        return if (blockSMB)
+            null
+        else
+            "not in range: $bg > $profileTarget + $offset (${profileTarget + offset})"
+    }
+
     override fun isSMBModeEnabled(value: Constraint<Boolean>): Constraint<Boolean> {
         val closedLoop = constraintChecker.isClosedLoopAllowed()
         if (!closedLoop.value()) value.set(false, rh.gs(R.string.smbnotallowedinopenloopmode), this)
+        val nightModeResult = checkNightMode()
+        if (nightModeResult == null)
+            value.set(false, rh.gs(R.string.night_mode_smbs_disabled), this)
+        else
+            value.set(true, rh.gs(R.string.night_mode_disabled, nightModeResult), this)
+
         return value
     }
 
@@ -219,6 +280,12 @@ class SafetyPlugin @Inject constructor(
             addPreference(AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.SafetyMaxBolus, title = app.aaps.core.ui.R.string.max_bolus_title))
             addPreference(AdaptiveIntPreference(ctx = context, intKey = IntKey.SafetyMaxCarbs, title = app.aaps.core.ui.R.string.max_carbs_title))
             addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.AlwaysPromoteAdvancedFiltering, title = R.string.always_promote_advanced_filtering_title, summary = R.string.always_promote_advanced_filtering_summary))
+            addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.NightMode, title = R.string.night_mode))
+            addPreference(AdaptiveStringPreference(ctx = context, validatorParams = DefaultEditTextValidator.Parameters(testType = EditTextValidator.TEST_TIME), stringKey = StringKey.NightModeBegin, title = R.string.night_mode_begin))
+            addPreference(AdaptiveStringPreference(ctx = context, validatorParams = DefaultEditTextValidator.Parameters(testType = EditTextValidator.TEST_TIME), stringKey = StringKey.NightModeEnd, title = R.string.night_mode_end))
+            addPreference(AdaptiveUnitPreference(ctx = context, unitKey = UnitDoubleKey.NightModeBgOffset, dialogMessage = R.string.night_mode_bg_offset_summary, title = R.string.night_mode_bg_offset))
+            addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.NightModeWithCOB, title = R.string.night_mode_cob))
+            addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.NightModeLowTT, title = R.string.night_mode_lowtt))
         }
     }
 }

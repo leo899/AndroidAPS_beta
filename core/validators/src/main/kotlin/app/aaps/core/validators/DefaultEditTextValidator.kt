@@ -31,6 +31,7 @@ import app.aaps.core.validators.validators.PersonNameValidator
 import app.aaps.core.validators.validators.PhoneValidator
 import app.aaps.core.validators.validators.PinStrengthValidator
 import app.aaps.core.validators.validators.RegexpValidator
+import app.aaps.core.validators.validators.TimeValidator
 import app.aaps.core.validators.validators.Validator
 import app.aaps.core.validators.validators.WebUrlValidator
 import com.google.android.material.textfield.TextInputLayout
@@ -206,7 +207,7 @@ class DefaultEditTextValidator : EditTextValidator {
                         throw RuntimeException(String.format("Unable to construct custom validator (%s) with argument: %s", classType, testErrorString))
                     }
                 }
-
+                EditTextValidator.TEST_TIME                -> TimeValidator(if (TextUtils.isEmpty(testErrorString)) context.getString(R.string.error_time_not_valid) else testErrorString)
                 EditTextValidator.TEST_DATE                -> DateValidator(if (TextUtils.isEmpty(testErrorString)) context.getString(R.string.error_date_not_valid) else testErrorString, customFormat)
                 else                                       -> DummyValidator()
             }

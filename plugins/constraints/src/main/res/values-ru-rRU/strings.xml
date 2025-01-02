@@ -53,4 +53,13 @@
     <string name="objectives_previous_button">Назад</string>
     <string name="objectives_button_unfinish">Сбросить пройденные</string>
     <string name="objectives_button_unstart">Сбросить начатые</string>
+    <!-- Night mode -->
+    <string name="night_mode">Ночной режим</string>
+    <string name="night_mode_begin">Начало ночного режима</string>
+    <string name="night_mode_end">Окончание ночного режима</string>
+    <string name="night_mode_bg_offset">Порог целевого ГК в ночном режиме</string>
+    <string name="night_mode_bg_offset_summary">Если ГК в данный момент ниже, чем целевой ГК плюс порог целевого ГК ночного режима, то SMB не будут подаваться.</string>
+    <string name="night_mode_cob">Выключать ночной режим при COB</string>
+    <string name="night_mode_lowtt">Выключать ночной режим при низкой ТТ</string>
+    <string name="night_mode_smbs_disabled">SMB выключены из-за активного ночного режима</string>
 </resources>

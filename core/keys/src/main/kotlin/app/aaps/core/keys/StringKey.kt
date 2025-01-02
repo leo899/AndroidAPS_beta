@@ -51,4 +51,7 @@ enum class StringKey(
     TidepoolUsername("tidepool_username", ""),
     TidepoolPassword("tidepool_password", "", isPassword = true),
     TidepoolTestLogin(key = "tidepool_test_login", ""),
+
+    NightModeBegin("night_mode_begin", "22:00", dependency = BooleanKey.NightMode),
+    NightModeEnd("night_mode_end", "06:00", dependency = BooleanKey.NightMode),
 }

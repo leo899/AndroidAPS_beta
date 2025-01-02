@@ -118,5 +118,8 @@ enum class BooleanKey(
 
     AlwaysPromoteAdvancedFiltering(key = "always_promote_advanced_filtering", defaultValue = false),
     DisableUpdatesChecker(key = "skip_updates_check", defaultValue = false),
-    EngineeringMode("force_engineering_mode", false)
+    EngineeringMode("force_engineering_mode", false),
+    NightMode("night_mode", false),
+    NightModeWithCOB("night_mode_cob", true, dependency = NightMode),
+    NightModeLowTT("night_mode_low_tt", true, dependency = NightMode)
 }

@@ -77,5 +77,15 @@
     <string name="objectives_button_unfinish">Reset finished state</string>
     <string name="objectives_button_unstart">Reset started state</string>
 
+    <!-- Night mode -->
+    <string name="night_mode">Night mode</string>
+    <string name="night_mode_begin">Night mode beginning</string>
+    <string name="night_mode_end">Night mode ending</string>
+    <string name="night_mode_bg_offset">Night mode target BG offset</string>
+    <string name="night_mode_bg_offset_summary">If BG is higher than Target BG plus Target BG offset, there would be no SMBs.</string>
+    <string name="night_mode_cob">Disable night mode with COB</string>
+    <string name="night_mode_lowtt">Disable night mode with low TT</string>
+    <string name="night_mode_smbs_disabled">SMBs are disabled because of an active night mode</string>
+    <string name="night_mode_disabled">Night mode is disabled: %1$s</string>
 
 </resources>

@@ -21,5 +21,6 @@ enum class UnitDoubleKey(
     OverviewHighMark("high_mark", 180.0, 90, 250, showInNsClientMode = false),
     ApsLgsThreshold("lgsThreshold", 65.0, 65, 120, defaultedBySM = true, dependency = BooleanKey.ApsUseDynamicSensitivity),
     ApsAutoIsfSmbDeliveryRatioBgRange("openapsama_smb_delivery_ratio_bg_range", 0.0, 0, 100, defaultedBySM = true),
-    ApsDynIsfBgCap("dynisf_bg_cap", 430.0, 108, 450, dependency = BooleanKey.ApsUseDynamicSensitivity)
+    ApsDynIsfBgCap("dynisf_bg_cap", 430.0, 108, 450, dependency = BooleanKey.ApsUseDynamicSensitivity),
+    NightModeBgOffset("night_mode_bg_offset", 36.0, 5, 90, dependency = BooleanKey.NightMode)
 }
