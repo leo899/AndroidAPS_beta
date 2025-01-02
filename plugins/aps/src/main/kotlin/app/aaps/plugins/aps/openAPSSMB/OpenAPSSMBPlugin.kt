@@ -330,6 +330,22 @@ open class OpenAPSSMBPlugin @Inject constructor(
         return profileSens * factor
     }
 
+    private fun getSmbRatio(target: Double): Double {
+        val fixedRatio = preferences.get(DoubleKey.ApsAutoIsfSmbDeliveryRatio)
+        val mappedRatioMin = preferences.get(DoubleKey.ApsAutoIsfSmbDeliveryRatioMin)
+        val mappedRatioMax = preferences.get(DoubleKey.ApsAutoIsfSmbDeliveryRatioMax)
+        val mappedRatioBG = preferences.get(UnitDoubleKey.ApsAutoIsfSmbDeliveryRatioBgRange)
+
+        val glucoseStatus = glucoseStatusProvider.glucoseStatusData
+        if (glucoseStatus == null || mappedRatioBG == 0.0) return fixedRatio
+
+        val bg = glucoseStatus.glucose
+        if (bg < target) return mappedRatioMin
+        if (bg > target + mappedRatioBG) return mappedRatioMax
+
+        return mappedRatioMin + (mappedRatioMax - mappedRatioMin) * (bg - target) / mappedRatioBG
+    }
+
     override fun invoke(initiator: String, tempBasalFallback: Boolean) {
         aapsLogger.debug(LTag.APS, "invoke from $initiator tempBasalFallback: $tempBasalFallback")
         lastAPSResult = null
@@ -544,7 +560,8 @@ open class OpenAPSSMBPlugin @Inject constructor(
             microBolusAllowed = microBolusAllowed,
             currentTime = now,
             flatBGsDetected = flatBGsDetected,
-            dynIsfMode = dynIsfMode && dynIsfResult.tddPartsCalculated()
+            dynIsfMode = dynIsfMode && dynIsfResult.tddPartsCalculated(),
+            smb_ratio = getSmbRatio(targetBg)
         ).also {
             val determineBasalResult = DetermineBasalResult(injector, it)
             // Preserve input data
@@ -639,7 +656,7 @@ open class OpenAPSSMBPlugin @Inject constructor(
     }
 
     override fun addPreferenceScreen(preferenceManager: PreferenceManager, parent: PreferenceScreen, context: Context, requiredKey: String?) {
-        if (requiredKey != null && requiredKey != "absorption_smb_advanced") return
+        if (requiredKey != null && requiredKey != "absorption_smb_advanced" && requiredKey != "smb_delivery_settings") return
         val category = PreferenceCategory(context)
         parent.addPreference(category)
         category.apply {
@@ -687,6 +704,22 @@ open class OpenAPSSMBPlugin @Inject constructor(
                 addPreference(AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.ApsMaxDailyMultiplier, dialogMessage = R.string.openapsama_max_daily_safety_multiplier_summary, title = R.string.openapsama_max_daily_safety_multiplier))
                 addPreference(
                     AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.ApsMaxCurrentBasalMultiplier, dialogMessage = R.string.openapsama_current_basal_safety_multiplier_summary, title = R.string.openapsama_current_basal_safety_multiplier)
+                )
+            })
+            addPreference(preferenceManager.createPreferenceScreen(context).apply {
+                key = "smb_delivery_settings"
+                title = rh.gs(R.string.smb_delivery_settings_title)
+                summary = rh.gs(R.string.smb_delivery_settings_summary)
+                addPreference(AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.ApsAutoIsfSmbDeliveryRatio, dialogMessage = R.string.openapsama_smb_delivery_ratio_summary, title = R.string.openapsama_smb_delivery_ratio))
+                addPreference(AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.ApsAutoIsfSmbDeliveryRatioMin, dialogMessage = R.string.openapsama_smb_delivery_ratio_min_summary, title = R.string.openapsama_smb_delivery_ratio_min))
+                addPreference(AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.ApsAutoIsfSmbDeliveryRatioMax, dialogMessage = R.string.openapsama_smb_delivery_ratio_max_summary, title = R.string.openapsama_smb_delivery_ratio_max))
+                addPreference(
+                    AdaptiveUnitPreference(
+                        ctx = context,
+                        unitKey = UnitDoubleKey.ApsAutoIsfSmbDeliveryRatioBgRange,
+                        dialogMessage = R.string.openapsama_smb_delivery_ratio_bg_range_summary,
+                        title = R.string.openapsama_smb_delivery_ratio_bg_range
+                    )
                 )
             })
         }
