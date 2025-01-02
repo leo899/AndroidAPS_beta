@@ -207,6 +207,7 @@ class MainActivity : DaggerAppCompatActivityWithResult() {
                         if (config.isUnfinishedMode()) message += "\nUnfinished mode enabled"
                         if (!fabricPrivacy.fabricEnabled()) message += "\n${rh.gs(app.aaps.core.ui.R.string.fabric_upload_disabled)}"
                         message += rh.gs(app.aaps.core.ui.R.string.about_link_urls)
+                        message += "\n\nTelegram:\nhttps://t.me/androidapsgroup"
                         val messageSpanned = SpannableString(message)
                         Linkify.addLinks(messageSpanned, Linkify.WEB_URLS)
                         MaterialAlertDialogBuilder(this@MainActivity, app.aaps.core.ui.R.style.DialogTheme)
