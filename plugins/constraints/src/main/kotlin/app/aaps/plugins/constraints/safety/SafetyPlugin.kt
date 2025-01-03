@@ -119,7 +119,7 @@ class SafetyPlugin @Inject constructor(
         val midnight = MidnightTime.calc(currentTimeMillis)
         val start = midnight + LocalTime.parse(preferences.get(StringKey.NightModeBegin), ISODateTimeFormat.timeElementParser()).millisOfDay
         val end = midnight + LocalTime.parse(preferences.get(StringKey.NightModeEnd), ISODateTimeFormat.timeElementParser()).millisOfDay
-        val offset = preferences.get(UnitDoubleKey.NightModeBgOffset)
+        val offset = profileUtil.convertToMgdlDetect(preferences.get(UnitDoubleKey.NightModeBgOffset))
 
         val active =
             if (end > start) currentTimeMillis in start..<end

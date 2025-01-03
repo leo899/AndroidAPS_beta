@@ -334,7 +334,7 @@ open class OpenAPSSMBPlugin @Inject constructor(
         val fixedRatio = preferences.get(DoubleKey.ApsAutoIsfSmbDeliveryRatio)
         val mappedRatioMin = preferences.get(DoubleKey.ApsAutoIsfSmbDeliveryRatioMin)
         val mappedRatioMax = preferences.get(DoubleKey.ApsAutoIsfSmbDeliveryRatioMax)
-        val mappedRatioBG = preferences.get(UnitDoubleKey.ApsAutoIsfSmbDeliveryRatioBgRange)
+        var mappedRatioBG = profileUtil.convertToMgdlDetect(preferences.get(UnitDoubleKey.ApsAutoIsfSmbDeliveryRatioBgRange))
 
         val glucoseStatus = glucoseStatusProvider.glucoseStatusData
         if (glucoseStatus == null || mappedRatioBG == 0.0) return fixedRatio
@@ -343,7 +343,9 @@ open class OpenAPSSMBPlugin @Inject constructor(
         if (bg < target) return mappedRatioMin
         if (bg > target + mappedRatioBG) return mappedRatioMax
 
-        return mappedRatioMin + (mappedRatioMax - mappedRatioMin) * (bg - target) / mappedRatioBG
+        val ratio = mappedRatioMin + (mappedRatioMax - mappedRatioMin) * (bg - target) / mappedRatioBG
+        aapsLogger.debug(LTag.APS, "SMBVariableRatio($mappedRatioMin - $mappedRatioMax, BG $mappedRatioBG) = $ratio")
+        return ratio
     }
 
     override fun invoke(initiator: String, tempBasalFallback: Boolean) {
