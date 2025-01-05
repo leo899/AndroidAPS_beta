@@ -308,4 +308,5 @@
     <string name="overview_show_steps">Действия</string>
     <string name="steps_shortname">ШАГИ</string>
     <string name="simple_mode_enabled">Простой режим включен</string>
+    <string name="overview_basal_always_absolute">Всегда отображать ВБС в ед/ч</string>
 </resources>

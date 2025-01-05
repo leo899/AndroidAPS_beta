@@ -23,6 +23,8 @@ import app.aaps.core.interfaces.profile.ProfileFunction
 import app.aaps.core.interfaces.resources.ResourceHelper
 import app.aaps.core.interfaces.sharedPreferences.SP
 import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.keys.BooleanKey
+import app.aaps.core.keys.Preferences
 import app.aaps.core.objects.R
 import app.aaps.core.objects.extensions.convertedToPercent
 import app.aaps.core.objects.extensions.isInProgress
@@ -41,7 +43,8 @@ class OverviewDataImpl @Inject constructor(
     private val activePlugin: ActivePlugin,
     private val profileFunction: ProfileFunction,
     private val persistenceLayer: PersistenceLayer,
-    private val processedTbrEbData: ProcessedTbrEbData
+    private val processedTbrEbData: ProcessedTbrEbData,
+    private val preferences: Preferences
 ) : OverviewData {
 
     override var rangeToDisplay = 6 // for graph
@@ -134,8 +137,8 @@ class OverviewDataImpl @Inject constructor(
         profileFunction.getProfile()?.let { profile ->
             var temporaryBasal = processedTbrEbData.getTempBasalIncludingConvertedExtended(dateUtil.now())
             if (temporaryBasal?.isInProgress == false) temporaryBasal = null
-            temporaryBasal?.let { rh.gs(app.aaps.plugins.main.R.string.temp_basal_overview_short_name) + it.toStringShort(rh) }
-                ?: rh.gs(app.aaps.core.ui.R.string.pump_base_basal_rate, profile.getBasal())
+            if (preferences.get(BooleanKey.OverviewBasalIsAlwaysAbsolute)) temporaryBasal?.isAbsolute = true
+            temporaryBasal?.toStringShort(rh) ?: rh.gs(app.aaps.core.ui.R.string.pump_base_basal_rate, profile.getBasal())
         } ?: rh.gs(app.aaps.core.ui.R.string.value_unavailable_short)
 
     override fun temporaryBasalDialogText(): String =
