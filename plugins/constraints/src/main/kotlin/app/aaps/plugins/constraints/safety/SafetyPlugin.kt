@@ -22,6 +22,7 @@ import app.aaps.core.interfaces.plugin.PluginBase
 import app.aaps.core.interfaces.plugin.PluginDescription
 import app.aaps.core.interfaces.profile.Profile
 import app.aaps.core.interfaces.profile.ProfileFunction
+import app.aaps.core.interfaces.profile.ProfileUtil
 import app.aaps.core.interfaces.pump.defs.determineCorrectBolusSize
 import app.aaps.core.interfaces.pump.defs.determineCorrectExtendedBolusSize
 import app.aaps.core.interfaces.resources.ResourceHelper
@@ -72,7 +73,8 @@ class SafetyPlugin @Inject constructor(
     private val decimalFormatter: DecimalFormatter,
     private val glucoseStatusProvider: GlucoseStatusProvider,
     private val profileFunction: ProfileFunction,
-    private val iobCobCalculator: IobCobCalculator
+    private val iobCobCalculator: IobCobCalculator,
+    private val profileUtil: ProfileUtil
 ) : PluginBase(
     PluginDescription()
         .mainType(PluginType.CONSTRAINTS)
@@ -111,8 +113,7 @@ class SafetyPlugin @Inject constructor(
     private fun checkNightMode(): String? {
         if (!preferences.get(BooleanKey.NightMode)) return "disabled in settings"
 
-        val glucoseStatus = glucoseStatusProvider.glucoseStatusData
-        if (glucoseStatus == null) return "no glucose data"
+        val glucoseStatus = glucoseStatusProvider.glucoseStatusData ?: return "no glucose data"
         val bg = glucoseStatus.glucose
 
         val currentTimeMillis = System.currentTimeMillis()

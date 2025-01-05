@@ -243,7 +243,8 @@ class ReplayApsResultsTest @Inject constructor() {
             microBolusAllowed = determineBasalResult.microBolusAllowed,
             currentTime = currentTime,
             flatBGsDetected = determineBasalResult.flatBGsDetected,
-            dynIsfMode = false
+            dynIsfMode = false,
+            smb_ratio = 0.5
         )
         val endKt = System.currentTimeMillis()
         ktTime += (endKt - startKt)
@@ -408,7 +409,8 @@ class ReplayApsResultsTest @Inject constructor() {
             microBolusAllowed = determineBasalResult.microBolusAllowed,
             currentTime = currentTime,
             flatBGsDetected = determineBasalResult.flatBGsDetected,
-            dynIsfMode = true
+            dynIsfMode = true,
+            smb_ratio = 0.5
         )
         val endKt = System.currentTimeMillis()
         ktTime += (endKt - startKt)
