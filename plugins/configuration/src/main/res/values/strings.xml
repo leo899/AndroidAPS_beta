@@ -56,6 +56,7 @@
     <string name="setupwizard_preferred_aps_mode">Preferred APS mode</string>
     <string name="error_asking_for_permissions">Error asking for permissions</string>
     <string name="alert_dialog_permission_battery_optimization_failed">This device does not appear to support battery optimization whitelisting - you may experience performance issues.</string>
+    <string name="need_ext_storage_permission">Application needs permission for accessing internal storage to store logs</string>
 
     <!--    ConfigBuilder-->
     <string name="config_builder">Config Builder</string>

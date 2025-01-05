@@ -9,6 +9,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.os.Environment
 import android.os.PowerManager
 import android.provider.Settings
 import androidx.core.content.ContextCompat
@@ -197,5 +198,26 @@ class AndroidPermissionImpl @Inject constructor(
                 validityCheck = { !Settings.canDrawOverlays(activity) }
             )
         else uiInteraction.dismissNotification(Notification.PERMISSION_SYSTEM_WINDOW)
+    }
+
+    @Synchronized override fun notifyForExtStoragePermission(activity: FragmentActivity) {
+        if (!Environment.isExternalStorageManager())
+            uiInteraction.addNotification(
+                id = Notification.PERMISSION_EXTERNAL_STORAGE,
+                text = rh.gs(R.string.need_ext_storage_permission),
+                level = Notification.URGENT,
+                actionButtonId = R.string.request,
+                action = {
+                    // Show alert dialog to the user saying a separate permission is needed
+                    // Launch the settings activity if the user prefers
+                    val intent = Intent(
+                        Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+                        Uri.parse("package:" + activity.packageName)
+                    )
+                    activity.startActivity(intent)
+                },
+                validityCheck = { !Environment.isExternalStorageManager() }
+            )
+        else uiInteraction.dismissNotification(Notification.PERMISSION_EXTERNAL_STORAGE)
     }
 }

@@ -54,6 +54,7 @@
     <string name="setupwizard_preferred_aps_mode">Предпочитаемый режим APS</string>
     <string name="error_asking_for_permissions">Ошибка при запросе разрешения</string>
     <string name="alert_dialog_permission_battery_optimization_failed">Это устройство не поддерживает меню оптимизации батареи - могут быть проблемы с производительностью.</string>
+    <string name="need_ext_storage_permission">Приложению требуется доступ ко внутреннему хранилищу для записи журналов</string>
     <!--    ConfigBuilder-->
     <string name="config_builder">Конфигуратор</string>
     <string name="configbuilder_pump">помпа</string>
