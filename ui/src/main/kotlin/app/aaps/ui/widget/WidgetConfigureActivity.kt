@@ -3,7 +3,11 @@ package app.aaps.ui.widget
 import android.appwidget.AppWidgetManager
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
+import android.widget.CheckBox
+import android.widget.CompoundButton
 import android.widget.SeekBar
+import androidx.appcompat.widget.SwitchCompat
 import app.aaps.core.interfaces.sharedPreferences.SP
 import dagger.android.DaggerActivity
 import app.aaps.ui.databinding.WidgetConfigureBinding
@@ -20,6 +24,9 @@ class WidgetConfigureActivity : DaggerActivity() {
 
         const val PREF_PREFIX_KEY = "appwidget_"
         const val DEFAULT_OPACITY = 25
+
+        const val STATUS_PREFIX_KEY = "status_"
+        const val DEFAULT_STATUS_ENABLED = true
     }
 
     private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
@@ -49,10 +56,14 @@ class WidgetConfigureActivity : DaggerActivity() {
             override fun onStartTrackingTouch(seekBar: SeekBar) {}
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
                 value = progress
-                saveTitlePref(appWidgetId, value)
+                saveOpacityPref(appWidgetId, value)
                 Widget.updateWidget(this@WidgetConfigureActivity, "WidgetConfigure")
             }
         })
+        binding.statusSwitch.setOnCheckedChangeListener { _, v ->
+            saveStatusPref(appWidgetId, v)
+            Widget.updateWidget(this, "WidgetConfigure")
+        }
 
         // Find the widget id from the intent.
         appWidgetId = intent.extras?.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID) ?: AppWidgetManager.INVALID_APPWIDGET_ID
@@ -63,15 +74,19 @@ class WidgetConfigureActivity : DaggerActivity() {
             return
         }
 
-        binding.seekBar.progress = loadTitlePref(appWidgetId)
+        binding.seekBar.progress = loadOpacityPref(appWidgetId)
+        binding.statusSwitch.isChecked = loadStatusPref(appWidgetId)
     }
 
     // Write the prefix to the SharedPreferences object for this widget
-    fun saveTitlePref(appWidgetId: Int, value: Int) {
+    fun saveOpacityPref(appWidgetId: Int, value: Int) {
         sp.putInt(PREF_PREFIX_KEY + appWidgetId, value)
     }
 
-    // Read the prefix from the SharedPreferences object for this widget.
-    // If there is no preference saved, get the default from a resource
-    private fun loadTitlePref(appWidgetId: Int): Int = sp.getInt(PREF_PREFIX_KEY + appWidgetId, 25)
+    fun saveStatusPref(appWidgetId: Int, value: Boolean) {
+        sp.putBoolean(PREF_PREFIX_KEY + STATUS_PREFIX_KEY + appWidgetId, value)
+    }
+
+    private fun loadOpacityPref(appWidgetId: Int): Int = sp.getInt(PREF_PREFIX_KEY + appWidgetId, DEFAULT_OPACITY)
+    private fun loadStatusPref(appWidgetId: Int): Boolean = sp.getBoolean(PREF_PREFIX_KEY + STATUS_PREFIX_KEY + appWidgetId, DEFAULT_STATUS_ENABLED)
 }

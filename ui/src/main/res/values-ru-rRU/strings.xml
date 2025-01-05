@@ -13,6 +13,7 @@
     <string name="a11y_carb_reminder">установить напоминание</string>
     <!--    Widget-->
     <string name="configure">Настроить прозрачность</string>
+    <string name="configure_statuslights">Показывать статус расходников</string>
     <string name="widget_description">Виджет AAPS</string>
     <!--     Activities-->
     <string name="activity_monitor">Монитор активности</string>

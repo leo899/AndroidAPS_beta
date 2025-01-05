@@ -205,8 +205,18 @@
             tools:ignore="UseCompoundDrawables">
 
             <ImageView
+                android:id="@+id/iob_icon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:contentDescription="@string/iob"
+                android:src="@drawable/ic_bolus" />
+
+            <ImageView
+                android:id="@+id/iob_icon_mini"
+                android:visibility="gone"
+                android:layout_width="36sp"
+                android:layout_height="36sp"
                 android:layout_gravity="center_horizontal"
                 android:contentDescription="@string/iob"
                 android:src="@drawable/ic_bolus" />
@@ -244,6 +254,15 @@
                 android:background="@drawable/anim_carbs"
                 android:contentDescription="@string/cob" />
 
+            <ImageView
+                android:id="@+id/carbs_icon_mini"
+                android:visibility="gone"
+                android:layout_width="36sp"
+                android:layout_height="36sp"
+                android:layout_gravity="center_horizontal"
+                android:background="@drawable/anim_carbs"
+                android:contentDescription="@string/cob" />
+
             <TextView
                 android:id="@+id/cob"
                 android:layout_width="wrap_content"
@@ -276,6 +295,15 @@
                 android:contentDescription="@string/basal"
                 android:src="@drawable/ic_cp_basal_no_tbr" />
 
+            <ImageView
+                android:id="@+id/base_basal_icon_mini"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:visibility="gone"
+                android:layout_gravity="center_horizontal"
+                android:contentDescription="@string/basal"
+                android:src="@drawable/ic_cp_basal_no_tbr" />
+
             <TextView
                 android:id="@+id/base_basal"
                 android:layout_width="wrap_content"
@@ -301,8 +329,18 @@
             tools:ignore="UseCompoundDrawables">
 
             <ImageView
+                android:id="@+id/extended_icon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:contentDescription="@string/extended_bolus"
+                android:src="@drawable/ic_actions_start_extended_bolus" />
+
+            <ImageView
+                android:id="@+id/extended_icon_mini"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
                 android:layout_gravity="center_horizontal"
                 android:contentDescription="@string/extended_bolus"
                 android:src="@drawable/ic_actions_start_extended_bolus" />
@@ -340,6 +378,15 @@
                 android:contentDescription="@string/a11y_autosens_label"
                 android:src="@drawable/ic_swap_vert_black_48dp_green" />
 
+            <ImageView
+                android:id="@+id/sensitivity_icon_mini"
+                android:layout_width="36sp"
+                android:layout_height="36sp"
+                android:visibility="gone"
+                android:layout_gravity="center_horizontal"
+                android:contentDescription="@string/a11y_autosens_label"
+                android:src="@drawable/ic_swap_vert_black_48dp_green" />
+
             <TextView
                 android:id="@+id/sensitivity"
                 android:layout_width="wrap_content"
@@ -365,6 +412,171 @@
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:visibility="visible"
+                tools:ignore="HardcodedText" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/status_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:baselineAligned="false"
+        android:paddingStart="4dp"
+        android:paddingEnd="4dp"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:id="@+id/cannula_age_layout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.8"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="horizontal"
+            tools:ignore="UseCompoundDrawables">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center_vertical"
+                android:contentDescription="@string/pump"
+                android:src="@drawable/ic_cp_age_cannula" />
+
+            <TextView
+                android:id="@+id/cannula_age"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:lines="1"
+                android:textColor="@color/white"
+                android:textSize="13sp"
+                android:gravity="center_vertical"
+                android:text="11d12h"
+                android:visibility="visible"
+                tools:ignore="HardcodedText" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/reservoir_layout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="horizontal"
+            tools:ignore="UseCompoundDrawables">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center_vertical"
+                android:contentDescription="@string/reservoir_label"
+                android:src="@drawable/ic_cp_age_insulin" />
+
+            <TextView
+                android:id="@+id/insulin_age"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:lines="1"
+                android:textColor="@color/white"
+                android:textSize="13sp"
+                android:gravity="center_vertical"
+                android:text="11d12h"
+                android:visibility="visible"
+                android:paddingStart="0sp"
+                android:paddingEnd="4sp"
+                tools:ignore="HardcodedText" />
+
+            <TextView
+                android:id="@+id/reservoir_level"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:lines="1"
+                android:textColor="@color/white"
+                android:textSize="13sp"
+                android:gravity="center_vertical"
+                android:text="300U"
+                android:visibility="visible"
+                tools:ignore="HardcodedText" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/sensor_age_layout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.8"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="horizontal"
+            tools:ignore="UseCompoundDrawables">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center_vertical"
+                android:contentDescription="@string/glucosetype_sensor"
+                android:src="@drawable/ic_cp_age_sensor" />
+
+            <TextView
+                android:id="@+id/sensor_age"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:lines="1"
+                android:textColor="@color/white"
+                android:textSize="13sp"
+                android:gravity="center_vertical"
+                android:text="11d12h"
+                android:visibility="visible"
+                tools:ignore="HardcodedText" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/battery_age_layout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="horizontal"
+            tools:ignore="UseCompoundDrawables">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center_vertical"
+                android:contentDescription="@string/battery_label"
+                android:src="@drawable/ic_cp_age_battery" />
+
+            <TextView
+                android:id="@+id/pb_age"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:lines="1"
+                android:textColor="@color/white"
+                android:textSize="13sp"
+                android:gravity="center_vertical"
+                android:text="11d12h"
+                android:visibility="visible"
+                android:paddingStart="0sp"
+                android:paddingEnd="4sp"
+                tools:ignore="HardcodedText" />
+
+            <TextView
+                android:id="@+id/pb_level"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:lines="1"
+                android:textColor="@color/white"
+                android:textSize="13sp"
+                android:gravity="center_vertical"
+                android:text="100%"
+                android:visibility="visible"
+                android:paddingStart="0sp"
+                android:paddingEnd="4sp"
                 tools:ignore="HardcodedText" />
 
         </LinearLayout>

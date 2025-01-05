@@ -15,6 +15,7 @@
 
     <!--    Widget-->
     <string name="configure">Configure opacity</string>
+    <string name="configure_statuslights">Enable status lights</string>
     <string name="widget_description">AAPS widget</string>
 
     <!--     Activities-->

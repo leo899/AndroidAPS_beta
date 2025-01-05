@@ -8,11 +8,16 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.Paint
+import android.os.Build
 import android.os.Handler
 import android.os.HandlerThread
+import android.util.TypedValue
 import android.view.View
 import android.widget.RemoteViews
+import android.widget.TextView
 import app.aaps.core.data.model.GlucoseUnit
+import app.aaps.core.data.model.TE
+import app.aaps.core.data.pump.defs.PumpType
 import app.aaps.core.interfaces.aps.IobTotal
 import app.aaps.core.interfaces.aps.Loop
 import app.aaps.core.interfaces.configuration.Config
@@ -29,12 +34,16 @@ import app.aaps.core.interfaces.overview.OverviewData
 import app.aaps.core.interfaces.plugin.ActivePlugin
 import app.aaps.core.interfaces.profile.ProfileFunction
 import app.aaps.core.interfaces.profile.ProfileUtil
+import app.aaps.core.interfaces.pump.WarnColors
 import app.aaps.core.interfaces.resources.ResourceHelper
 import app.aaps.core.interfaces.sharedPreferences.SP
 import app.aaps.core.interfaces.ui.UiInteraction
 import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.interfaces.utils.DecimalFormatter
 import app.aaps.core.interfaces.utils.TrendCalculator
+import app.aaps.core.keys.BooleanKey
+import app.aaps.core.keys.IntKey
+import app.aaps.core.keys.Preferences
 import app.aaps.core.objects.extensions.directionToIcon
 import app.aaps.core.objects.extensions.displayText
 import app.aaps.core.objects.extensions.round
@@ -43,9 +52,12 @@ import app.aaps.core.ui.extensions.toVisibility
 import app.aaps.core.ui.extensions.toVisibilityKeepSpace
 import app.aaps.ui.R
 import dagger.android.HasAndroidInjector
+import kotlinx.coroutines.launch
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 /**
  * Implementation of App Widget functionality.
@@ -72,6 +84,9 @@ class Widget : AppWidgetProvider() {
     @Inject lateinit var decimalFormatter: DecimalFormatter
     @Inject lateinit var persistenceLayer: PersistenceLayer
     @Inject lateinit var processedDeviceStatusData: ProcessedDeviceStatusData
+    @Inject lateinit var preferences: Preferences
+
+    var isMini = false
 
     companion object {
 
@@ -114,6 +129,7 @@ class Widget : AppWidgetProvider() {
     private fun updateAppWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
         val views = RemoteViews(context.packageName, R.layout.widget_layout)
         val alpha = sp.getInt(WidgetConfigureActivity.PREF_PREFIX_KEY + appWidgetId, WidgetConfigureActivity.DEFAULT_OPACITY)
+        val showStatus = sp.getBoolean(WidgetConfigureActivity.PREF_PREFIX_KEY + WidgetConfigureActivity.STATUS_PREFIX_KEY + appWidgetId, WidgetConfigureActivity.DEFAULT_STATUS_ENABLED)
 
         // Create an Intent to launch MainActivity when clicked
         val intent = Intent(context, uiInteraction.mainActivity).also { it.action = intentAction }
@@ -124,6 +140,16 @@ class Widget : AppWidgetProvider() {
 
         handler.post {
             if (config.appInitialized) {
+                val request = loop.lastRun?.request
+                val isfMgdl = profileFunction.getProfile()?.getProfileIsfMgdl()
+                val variableSens =
+                    if (config.APS) request?.variableSens ?: 0.0
+                    else if (config.NSCLIENT) processedDeviceStatusData.getAPSResult()?.variableSens ?: 0.0
+                    else 0.0
+
+                // status line doesn't have space only
+                // if Dynamic ISF data is present
+                isMini = showStatus && (variableSens != isfMgdl && variableSens != 0.0 && isfMgdl != null)
                 updateBg(views)
                 updateTemporaryBasal(views)
                 updateExtendedBolus(views)
@@ -131,9 +157,76 @@ class Widget : AppWidgetProvider() {
                 updateTemporaryTarget(views)
                 updateProfile(views)
                 updateSensitivity(views)
+
+                for (i in arrayOf(R.id.iob_icon, R.id.carbs_icon, R.id.extended_icon, R.id.sensitivity_icon, R.id.base_basal_icon))
+                    views.setViewVisibility(i, if (isMini) View.GONE else View.VISIBLE)
+
+                for (i in arrayOf(R.id.iob_icon_mini, R.id.carbs_icon_mini, R.id.extended_icon_mini, R.id.sensitivity_icon_mini, R.id.base_basal_icon_mini))
+                    views.setViewVisibility(i, if (isMini) View.VISIBLE else View.GONE)
+
+                if (showStatus) {
+                    views.setViewPadding(R.id.status_layout, 4, if (isMini) 0 else 6, 4, 0)
+
+                    val pump = activePlugin.activePump
+                    updateAge(views, R.id.cannula_age, TE.Type.CANNULA_CHANGE, IntKey.OverviewCageWarning, IntKey.OverviewCageCritical)
+                    updateAge(views, R.id.sensor_age, TE.Type.SENSOR_CHANGE, IntKey.OverviewSageWarning, IntKey.OverviewSageCritical)
+                    updateAge(views, R.id.insulin_age, TE.Type.INSULIN_CHANGE, IntKey.OverviewIageWarning, IntKey.OverviewIageCritical)
+
+                    val insulinUnit = rh.gs(app.aaps.core.ui.R.string.insulin_unit_shortname)
+                    val maxReading = pump.pumpDescription.maxResorvoirReading
+                    views.setTextColor(R.id.reservoir_level, rh.gc(when {
+                        pump.reservoirLevel <= preferences.get(IntKey.OverviewResCritical) -> app.aaps.core.ui.R.color.widget_ribbonCritical
+                        pump.reservoirLevel <= preferences.get(IntKey.OverviewResWarning) -> app.aaps.core.ui.R.color.widget_ribbonWarning
+                        else -> app.aaps.core.ui.R.color.widget_ribbonTextDefault
+                    }))
+                    val reservoirString = if (!pump.pumpDescription.isPatchPump)
+                        pump.reservoirLevel.roundToInt().toString()
+                    else
+                       if (pump.reservoirLevel >= maxReading) "$maxReading+" else pump.reservoirLevel.roundToInt().toString()
+                    views.setTextViewText(R.id.reservoir_level, reservoirString + insulinUnit)
+
+                    views.setViewVisibility(R.id.pb_level, View.GONE)
+                    views.setViewVisibility(R.id.pb_age, View.GONE)
+                    if (pump.isBatteryChangeLoggingEnabled() || pump.pumpDescription.isBatteryReplaceable) {
+                        views.setViewVisibility(R.id.pb_age, View.VISIBLE)
+                        updateAge(views, R.id.pb_age, TE.Type.PUMP_BATTERY_CHANGE, IntKey.OverviewBageWarning, IntKey.OverviewBageCritical)
+                    }
+
+                    if (!config.NSCLIENT) {
+                        // The Omnipod Eros does not report its battery level. However, some RileyLink alternatives do.
+                        // Depending on the user's configuration, we will either show the battery level reported by the RileyLink or "n/a"
+                        // Pump instance check is needed because at startup, the pump can still be VirtualPumpPlugin and that will cause a crash
+                        val erosBatteryLinkAvailable = pump.model() == PumpType.OMNIPOD_EROS && pump.isUseRileyLinkBatteryLevel()
+
+                        if (pump.model().supportBatteryLevel || erosBatteryLinkAvailable) {
+                            views.setViewVisibility(R.id.pb_level, View.VISIBLE)
+                            views.setTextColor(R.id.pb_level, rh.gc(when {
+                                pump.batteryLevel <= preferences.get(IntKey.OverviewBattCritical) -> app.aaps.core.ui.R.color.widget_ribbonCritical
+                                pump.batteryLevel <= preferences.get(IntKey.OverviewBattWarning) -> app.aaps.core.ui.R.color.widget_ribbonWarning
+                                else -> app.aaps.core.ui.R.color.widget_ribbonTextDefault
+                            }))
+                            views.setTextViewText(R.id.pb_level, pump.batteryLevel.toString() + "%")
+                        }
+                    }
+                }
+                views.setViewVisibility(R.id.status_layout, if (!showStatus) View.GONE else View.VISIBLE)
+
                 // Instruct the widget manager to update the widget
                 appWidgetManager.updateAppWidget(appWidgetId, views)
             }
+        }
+    }
+
+    private fun updateAge(views: RemoteViews, viewId: Int, type: TE.Type, warnSettings: IntKey, urgentSettings: IntKey) {
+        val warn = preferences.get(warnSettings)
+        val urgent = preferences.get(urgentSettings)
+        val therapyEvent = persistenceLayer.getLastTherapyRecordUpToNow(type)
+        if (therapyEvent != null) {
+            views.setTextViewText(viewId, therapyEvent.age())
+            if (preferences.get(BooleanKey.OverviewShowStatusLights))
+                views.setTextColor(viewId, rh.gc(therapyEvent.color(warn, urgent)))
+        } else {
+            views.setTextViewText(viewId, "-")
         }
     }
 
@@ -183,7 +276,7 @@ class Widget : AppWidgetProvider() {
         views.setTextViewText(R.id.base_basal, overviewData.temporaryBasalText())
         views.setTextColor(R.id.base_basal, processedTbrEbData.getTempBasalIncludingConvertedExtended(dateUtil.now())?.let { rh.gc(app.aaps.core.ui.R.color.widget_basal) }
             ?: rh.gc(app.aaps.core.ui.R.color.white))
-        views.setImageViewResource(R.id.base_basal_icon, overviewData.temporaryBasalIcon())
+        views.setImageViewResource(if (isMini) R.id.base_basal_icon_mini else R.id.base_basal_icon, overviewData.temporaryBasalIcon())
     }
 
     private fun updateExtendedBolus(views: RemoteViews) {
@@ -275,9 +368,9 @@ class Widget : AppWidgetProvider() {
     private fun updateSensitivity(views: RemoteViews) {
         val lastAutosensData = iobCobCalculator.ads.getLastAutosensData("Widget", aapsLogger, dateUtil)
         if (constraintChecker.isAutosensModeEnabled().value())
-            views.setImageViewResource(R.id.sensitivity_icon, app.aaps.core.objects.R.drawable.ic_swap_vert_black_48dp_green)
+            views.setImageViewResource(if (isMini) R.id.sensitivity_icon_mini else R.id.sensitivity_icon, app.aaps.core.objects.R.drawable.ic_swap_vert_black_48dp_green)
         else
-            views.setImageViewResource(R.id.sensitivity_icon, app.aaps.core.objects.R.drawable.ic_x_swap_vert)
+            views.setImageViewResource(if (isMini) R.id.sensitivity_icon_mini else R.id.sensitivity_icon, app.aaps.core.objects.R.drawable.ic_x_swap_vert)
         views.setTextViewText(R.id.sensitivity, lastAutosensData?.let {
             String.format(Locale.ENGLISH, "%.0f%%", it.autosensResult.ratio * 100)
         } ?: "")
@@ -300,5 +393,19 @@ class Widget : AppWidgetProvider() {
             views.setTextViewText(R.id.variable_sensitivity, text)
             views.setViewVisibility(R.id.variable_sensitivity, View.VISIBLE)
         } else views.setViewVisibility(R.id.variable_sensitivity, View.GONE)
+
+    }
+
+    private fun TE.age(): String {
+        return dateUtil.age(System.currentTimeMillis() - timestamp, true, rh)
+    }
+
+    private fun TE.color(warnLevel: Int, urgentLevel: Int): Int {
+        val value = dateUtil.computeDiff(timestamp, System.currentTimeMillis())[TimeUnit.HOURS]?.toInt() ?: return app.aaps.core.ui.R.color.widget_ribbonTextDefault
+        return when {
+            value >= urgentLevel -> app.aaps.core.ui.R.color.widget_ribbonCritical
+            value >= warnLevel   -> app.aaps.core.ui.R.color.widget_ribbonWarning
+            else                 -> app.aaps.core.ui.R.color.widget_ribbonTextDefault
+        }
     }
 }
