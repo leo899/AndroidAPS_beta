@@ -138,7 +138,7 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
     private val smb_delivery_ratio_max; get() = preferences.get(DoubleKey.ApsAutoIsfSmbDeliveryRatioMax)
     private val smb_delivery_ratio_bg_range
         get() = if (preferences.get(UnitDoubleKey.ApsAutoIsfSmbDeliveryRatioBgRange) < 10.0) preferences.get(UnitDoubleKey.ApsAutoIsfSmbDeliveryRatioBgRange) * GlucoseUnit.MMOLL_TO_MGDL else preferences.get(UnitDoubleKey.ApsAutoIsfSmbDeliveryRatioBgRange)
-    val smbMaxRangeExtension; get() = preferences.get(DoubleKey.ApsAutoIsfSmbMaxRangeExtension)
+    val smbMaxRangeExtension; get() = 1.0 // preferences.get(DoubleKey.ApsAutoIsfSmbMaxRangeExtension)
     private val enableSMB_EvenOn_OddOff_always; get() = preferences.get(BooleanKey.ApsAutoIsfSmbOnEvenTarget) // for profile target
     val iobThresholdPercent; get() = preferences.get(IntKey.ApsAutoIsfIobThPercent)
     private val exerciseMode; get() = SMBDefaults.exercise_mode
@@ -1010,7 +1010,7 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
                             title = R.string.openapsama_smb_delivery_ratio_bg_range
                         )
                     )
-                    addPreference(AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.ApsAutoIsfSmbMaxRangeExtension, dialogMessage = R.string.openapsama_smb_max_range_extension_summary, title = R.string.openapsama_smb_max_range_extension))
+                    //addPreference(AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.ApsAutoIsfSmbMaxRangeExtension, dialogMessage = R.string.openapsama_smb_max_range_extension_summary, title = R.string.openapsama_smb_max_range_extension))
                     addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsAutoIsfSmbOnEvenTarget, summary = R.string.enableSMB_EvenOn_OddOff_always_summary, title = R.string.enableSMB_EvenOn_OddOff_always))
                 })
             })
