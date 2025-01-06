@@ -1119,8 +1119,10 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
 
     private fun updateSensitivity() {
         _binding ?: return
-        val useAutosens = constraintChecker.isAutosensModeEnabled().value()
-        val lastAutosensData = iobCobCalculator.ads.getLastAutosensData("Overview", aapsLogger, dateUtil)
+        val text = overviewData.sensitivityText(true, loop, iobCobCalculator)
+        binding.infoLayout.sensitivity.visibility = if (text.isEmpty()) View.GONE else View.VISIBLE
+        binding.infoLayout.sensitivity.text = text
+
         if (config.NSCLIENT && sp.getBoolean(app.aaps.core.utils.R.string.key_used_autosens_on_main_phone, false) ||
             !config.NSCLIENT && constraintChecker.isAutosensModeEnabled().value()
         ) {
@@ -1128,36 +1130,6 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         } else {
             binding.infoLayout.sensitivityIcon.setImageResource(app.aaps.core.objects.R.drawable.ic_x_swap_vert)
         }
-
-        binding.infoLayout.sensitivity.visibility = if (useAutosens) View.VISIBLE else View.GONE
-        binding.infoLayout.sensitivity.text = lastAutosensData?.let {
-            String.format(Locale.ENGLISH, "%.0f%%", it.autosensResult.ratio * 100)
-        } ?: ""
-
-        // Show variable sensitivity
-        val profile = profileFunction.getProfile()
-        val request = loop.lastRun?.request
-        val isfMgdl = profile?.getProfileIsfMgdl()
-        val isfForCarbs = profile?.getIsfMgdlForCarbs(dateUtil.now(), "Overview", config, processedDeviceStatusData)
-        val variableSens =
-            if (config.APS) request?.variableSens ?: 0.0
-            else if (config.NSCLIENT) processedDeviceStatusData.getAPSResult()?.variableSens ?: 0.0
-            else 0.0
-        val ratioUsed = request?.autosensResult?.ratio ?: 1.0
-
-        if (variableSens != isfMgdl && variableSens != 0.0 && isfMgdl != null) {
-            if (preferences.get(BooleanKey.ApsDynIsfAdjustSensitivity))
-                // Replace non-working Autosens with TDD-based sensitivity
-                binding.infoLayout.sensitivity.text =  String.format(Locale.ENGLISH, "%.0f%%", ratioUsed * 100)
-
-            binding.infoLayout.variableSensitivity.text = String.format(
-                Locale.getDefault(), "%1$.1f→%2$.1f (%3$.1f)",
-                profileUtil.fromMgdlToUnits(isfMgdl, profileFunction.getUnits()),
-                profileUtil.fromMgdlToUnits(variableSens, profileFunction.getUnits()),
-                profileUtil.fromMgdlToUnits(isfForCarbs ?: 0.0, profileFunction.getUnits())
-            )
-            binding.infoLayout.variableSensitivity.visibility = View.VISIBLE
-        } else binding.infoLayout.variableSensitivity.visibility = View.GONE
     }
 
     private fun updatePumpStatus() {

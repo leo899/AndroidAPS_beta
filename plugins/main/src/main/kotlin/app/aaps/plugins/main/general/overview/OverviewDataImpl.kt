@@ -13,13 +13,21 @@ import app.aaps.core.graph.data.LineGraphSeries
 import app.aaps.core.graph.data.PointsWithLabelGraphSeries
 import app.aaps.core.graph.data.ScaledDataPoint
 import app.aaps.core.graph.data.StepsDataPoint
+import app.aaps.core.interfaces.aps.Loop
+import app.aaps.core.interfaces.configuration.Config
+import app.aaps.core.interfaces.constraints.ConstraintsChecker
 import app.aaps.core.interfaces.db.PersistenceLayer
 import app.aaps.core.interfaces.db.ProcessedTbrEbData
 import app.aaps.core.interfaces.graph.Scale
 import app.aaps.core.interfaces.graph.SeriesData
+import app.aaps.core.interfaces.iob.IobCobCalculator
+import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.nsclient.ProcessedDeviceStatusData
 import app.aaps.core.interfaces.overview.OverviewData
 import app.aaps.core.interfaces.plugin.ActivePlugin
+import app.aaps.core.interfaces.profile.Profile
 import app.aaps.core.interfaces.profile.ProfileFunction
+import app.aaps.core.interfaces.profile.ProfileUtil
 import app.aaps.core.interfaces.resources.ResourceHelper
 import app.aaps.core.interfaces.sharedPreferences.SP
 import app.aaps.core.interfaces.utils.DateUtil
@@ -32,6 +40,7 @@ import app.aaps.core.objects.extensions.toStringFull
 import app.aaps.core.objects.extensions.toStringShort
 import com.jjoe64.graphview.series.DataPoint
 import java.util.Calendar
+import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -44,7 +53,12 @@ class OverviewDataImpl @Inject constructor(
     private val profileFunction: ProfileFunction,
     private val persistenceLayer: PersistenceLayer,
     private val processedTbrEbData: ProcessedTbrEbData,
-    private val preferences: Preferences
+    private val preferences: Preferences,
+    private val profileUtil: ProfileUtil,
+    private val processedDeviceStatusData: ProcessedDeviceStatusData,
+    private val config: Config,
+    private val aapsLogger: AAPSLogger,
+    private val constraintsChecker: ConstraintsChecker
 ) : OverviewData {
 
     override var rangeToDisplay = 6 // for graph
@@ -149,6 +163,49 @@ class OverviewDataImpl @Inject constructor(
             }
                 ?: "${rh.gs(app.aaps.core.ui.R.string.base_basal_rate_label)}: ${rh.gs(app.aaps.core.ui.R.string.pump_base_basal_rate, profile.getBasal())}"
         } ?: rh.gs(app.aaps.core.ui.R.string.value_unavailable_short)
+
+    override fun sensitivityText(showIsfForCarbs: Boolean, loop: Loop, iobCobCalculator: IobCobCalculator): String {
+        val useAutosens =
+            if (config.NSCLIENT) sp.getBoolean(app.aaps.core.utils.R.string.key_used_autosens_on_main_phone, false)
+            else constraintsChecker.isAutosensModeEnabled().value()
+
+        val request = loop.lastRun?.request
+        val lastAutosensData = iobCobCalculator.ads.getLastAutosensData("Overview", aapsLogger, dateUtil)
+        val ratioUsed = request?.autosensResult?.ratio ?: 1.0
+
+        var text = ""
+        if (useAutosens) {
+            text += if (preferences.get(BooleanKey.ApsDynIsfAdjustSensitivity))
+                String.format(Locale.ENGLISH, "%.0f%%", ratioUsed * 100)
+            else
+                lastAutosensData?.let { String.format(Locale.ENGLISH, "%.0f%%", it.autosensResult.ratio * 100) } ?: ""
+        }
+
+        // Show variable sensitivity
+        val isfMgdl = profileFunction.getProfile()?.getProfileIsfMgdl()
+        val isfForCarbs = profileFunction.getProfile()?.getIsfMgdlForCarbs(dateUtil.now(), "Overview", config, processedDeviceStatusData)
+        val variableSens =
+            if (config.APS) request?.variableSens ?: 0.0
+            else if (config.NSCLIENT) processedDeviceStatusData.getAPSResult()?.variableSens ?: 0.0
+            else 0.0
+        if (variableSens != 0.0 && isfMgdl != null) {
+            if (useAutosens) text += "\n"
+            text += if (!showIsfForCarbs || isfForCarbs == null)
+                String.format(
+                    Locale.getDefault(), "%1$.1f→%2$.1f",
+                    profileUtil.fromMgdlToUnits(isfMgdl, profileFunction.getUnits()),
+                    profileUtil.fromMgdlToUnits(variableSens, profileFunction.getUnits())
+                )
+            else
+                String.format(
+                    Locale.getDefault(), "%1$.1f→%2$.1f (%3$.1f)",
+                    profileUtil.fromMgdlToUnits(isfMgdl, profileFunction.getUnits()),
+                    profileUtil.fromMgdlToUnits(variableSens, profileFunction.getUnits()),
+                    profileUtil.fromMgdlToUnits(isfForCarbs, profileFunction.getUnits())
+                )
+        }
+        return text
+    }
 
     @DrawableRes override fun temporaryBasalIcon(): Int =
         profileFunction.getProfile()?.let { profile ->

@@ -140,16 +140,13 @@ class Widget : AppWidgetProvider() {
 
         handler.post {
             if (config.appInitialized) {
-                val request = loop.lastRun?.request
-                val isfMgdl = profileFunction.getProfile()?.getProfileIsfMgdl()
                 val variableSens =
-                    if (config.APS) request?.variableSens ?: 0.0
-                    else if (config.NSCLIENT) processedDeviceStatusData.getAPSResult()?.variableSens ?: 0.0
-                    else 0.0
+                    if (config.APS) loop.lastRun?.request?.variableSens
+                    else if (config.NSCLIENT) processedDeviceStatusData.getAPSResult()?.variableSens
+                    else null
 
-                // status line doesn't have space only
-                // if 2 lines are used
-                isMini = showStatus && (variableSens != isfMgdl && variableSens != 0.0 && isfMgdl != null) && constraintChecker.isAutosensModeEnabled().value()
+                // status line doesn't have space only if 2 lines are used (AS + VS)
+                isMini = showStatus && variableSens != null && constraintChecker.isAutosensModeEnabled().value()
                 updateBg(views)
                 updateTemporaryBasal(views)
                 updateExtendedBolus(views)
@@ -366,38 +363,16 @@ class Widget : AppWidgetProvider() {
     }
 
     private fun updateSensitivity(views: RemoteViews) {
-        val lastAutosensData = iobCobCalculator.ads.getLastAutosensData("Widget", aapsLogger, dateUtil)
-
         // Also handles TDD-based sens
-        val useAutosens = constraintChecker.isAutosensModeEnabled().value()
-        if (useAutosens)
+        if (constraintChecker.isAutosensModeEnabled().value())
             views.setImageViewResource(if (isMini) R.id.sensitivity_icon_mini else R.id.sensitivity_icon, app.aaps.core.objects.R.drawable.ic_swap_vert_black_48dp_green)
         else
             views.setImageViewResource(if (isMini) R.id.sensitivity_icon_mini else R.id.sensitivity_icon, app.aaps.core.objects.R.drawable.ic_x_swap_vert)
 
-        val request = loop.lastRun?.request
-        val ratioUsed = request?.autosensResult?.ratio ?: 1.0
-        views.setTextViewText(R.id.sensitivity, if (preferences.get(BooleanKey.ApsDynIsfAdjustSensitivity))
-             String.format(Locale.ENGLISH, "%.0f%%", ratioUsed * 100)
-        else
-            lastAutosensData?.let { String.format(Locale.ENGLISH, "%.0f%%", it.autosensResult.ratio * 100) } ?: "")
-        views.setViewVisibility(R.id.sensitivity, if (useAutosens) View.VISIBLE else View.GONE)
+        val text = overviewData.sensitivityText(false, loop, iobCobCalculator)
 
-        // Show variable sensitivity
-        val isfMgdl = profileFunction.getProfile()?.getProfileIsfMgdl()
-        val variableSens =
-            if (config.APS) request?.variableSens ?: 0.0
-            else if (config.NSCLIENT) processedDeviceStatusData.getAPSResult()?.variableSens ?: 0.0
-            else 0.0
-        if (variableSens != isfMgdl && variableSens != 0.0 && isfMgdl != null) {
-            views.setTextViewText(R.id.variable_sensitivity, String.format(
-                Locale.getDefault(), "%1$.1f→%2$.1f",
-                profileUtil.fromMgdlToUnits(isfMgdl, profileFunction.getUnits()),
-                profileUtil.fromMgdlToUnits(variableSens, profileFunction.getUnits())
-            ))
-            views.setViewVisibility(R.id.variable_sensitivity, View.VISIBLE)
-        } else views.setViewVisibility(R.id.variable_sensitivity, View.GONE)
-
+        views.setTextViewText(R.id.sensitivity, text)
+        views.setViewVisibility(R.id.sensitivity, if (text.isEmpty()) View.GONE else View.VISIBLE)
     }
 
     private fun TE.age(): String {
