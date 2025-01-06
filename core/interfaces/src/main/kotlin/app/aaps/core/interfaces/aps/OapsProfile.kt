@@ -49,5 +49,8 @@ data class OapsProfile(
     //DynISF only
     var variable_sens: Double,
     var insulinDivisor: Int,
-    var TDD: Double
+    var TDD: Double,
+
+    //custom stuff - consider using nullable values to avoid crashes
+    var use_TDD_for_predictions: Boolean?
 )
