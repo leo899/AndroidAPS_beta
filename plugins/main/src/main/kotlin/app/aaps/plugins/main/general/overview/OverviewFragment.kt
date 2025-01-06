@@ -1148,7 +1148,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         if (variableSens != isfMgdl && variableSens != 0.0 && isfMgdl != null) {
             if (preferences.get(BooleanKey.ApsDynIsfAdjustSensitivity))
                 // Replace non-working Autosens with TDD-based sensitivity
-                binding.infoLayout.sensitivity.text =  String.format(Locale.ENGLISH, "%.0f%%\n", ratioUsed * 100)
+                binding.infoLayout.sensitivity.text =  String.format(Locale.ENGLISH, "%.0f%%", ratioUsed * 100)
 
             binding.infoLayout.variableSensitivity.text = String.format(
                 Locale.getDefault(), "%1$.1f→%2$.1f (%3$.1f)",

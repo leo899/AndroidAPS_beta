@@ -148,8 +148,8 @@ class Widget : AppWidgetProvider() {
                     else 0.0
 
                 // status line doesn't have space only
-                // if Dynamic ISF data is present
-                isMini = showStatus && (variableSens != isfMgdl && variableSens != 0.0 && isfMgdl != null)
+                // if 2 lines are used
+                isMini = showStatus && (variableSens != isfMgdl && variableSens != 0.0 && isfMgdl != null) && constraintChecker.isAutosensModeEnabled().value()
                 updateBg(views)
                 updateTemporaryBasal(views)
                 updateExtendedBolus(views)
@@ -401,7 +401,10 @@ class Widget : AppWidgetProvider() {
     }
 
     private fun TE.age(): String {
-        return dateUtil.age(System.currentTimeMillis() - timestamp, true, rh)
+        val diff = dateUtil.computeDiff(timestamp, System.currentTimeMillis())
+        val days = rh.gs(app.aaps.core.interfaces.R.string.shortday)
+        val hours = rh.gs(app.aaps.core.interfaces.R.string.shorthour)
+        return diff[TimeUnit.DAYS].toString() + days + diff[TimeUnit.HOURS].toString() + hours
     }
 
     private fun TE.color(warnLevel: Int, urgentLevel: Int): Int {
