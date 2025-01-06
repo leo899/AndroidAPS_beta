@@ -307,7 +307,7 @@ class OverviewPlugin @Inject constructor(
                 key = "overview_advanced_settings"
                 title = rh.gs(app.aaps.core.ui.R.string.advanced_settings_title)
                 addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.OverviewUseSuperBolus, summary = R.string.enablesuperbolus_summary, title = R.string.enablesuperbolus))
-                addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.OverviewBasalIsAlwaysAbsolute, title = R.string.overview_basal_always_absolute))
+                addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.OverviewBasalIsAlwaysNotAbsolute, title = R.string.overview_basal_always_not_absolute))
             })
         }
     }

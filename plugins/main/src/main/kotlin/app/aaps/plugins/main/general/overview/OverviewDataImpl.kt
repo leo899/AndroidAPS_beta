@@ -137,8 +137,8 @@ class OverviewDataImpl @Inject constructor(
         profileFunction.getProfile()?.let { profile ->
             var temporaryBasal = processedTbrEbData.getTempBasalIncludingConvertedExtended(dateUtil.now())
             if (temporaryBasal?.isInProgress == false) temporaryBasal = null
-            if (preferences.get(BooleanKey.OverviewBasalIsAlwaysAbsolute)) temporaryBasal?.isAbsolute = true
-            temporaryBasal?.toStringShort(rh) ?: rh.gs(app.aaps.core.ui.R.string.pump_base_basal_rate, profile.getBasal())
+            val usePercentage = preferences.get(BooleanKey.OverviewBasalIsAlwaysNotAbsolute)
+            temporaryBasal?.toStringShort(usePercentage, profile.getBasal(), rh) ?: rh.gs(app.aaps.core.ui.R.string.pump_base_basal_rate, profile.getBasal())
         } ?: rh.gs(app.aaps.core.ui.R.string.value_unavailable_short)
 
     override fun temporaryBasalDialogText(): String =
