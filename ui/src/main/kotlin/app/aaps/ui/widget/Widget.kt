@@ -367,30 +367,34 @@ class Widget : AppWidgetProvider() {
 
     private fun updateSensitivity(views: RemoteViews) {
         val lastAutosensData = iobCobCalculator.ads.getLastAutosensData("Widget", aapsLogger, dateUtil)
-        if (constraintChecker.isAutosensModeEnabled().value())
+
+        // Also handles TDD-based sens
+        val useAutosens = constraintChecker.isAutosensModeEnabled().value()
+        if (useAutosens)
             views.setImageViewResource(if (isMini) R.id.sensitivity_icon_mini else R.id.sensitivity_icon, app.aaps.core.objects.R.drawable.ic_swap_vert_black_48dp_green)
         else
             views.setImageViewResource(if (isMini) R.id.sensitivity_icon_mini else R.id.sensitivity_icon, app.aaps.core.objects.R.drawable.ic_x_swap_vert)
-        views.setTextViewText(R.id.sensitivity, lastAutosensData?.let {
-            String.format(Locale.ENGLISH, "%.0f%%", it.autosensResult.ratio * 100)
-        } ?: "")
+
+        val request = loop.lastRun?.request
+        val ratioUsed = request?.autosensResult?.ratio ?: 1.0
+        views.setTextViewText(R.id.sensitivity, if (preferences.get(BooleanKey.ApsDynIsfAdjustSensitivity))
+             String.format(Locale.ENGLISH, "%.0f%%", ratioUsed * 100)
+        else
+            lastAutosensData?.let { String.format(Locale.ENGLISH, "%.0f%%", it.autosensResult.ratio * 100) } ?: "")
+        views.setViewVisibility(R.id.sensitivity, if (useAutosens) View.VISIBLE else View.GONE)
 
         // Show variable sensitivity
-        val request = loop.lastRun?.request
         val isfMgdl = profileFunction.getProfile()?.getProfileIsfMgdl()
         val variableSens =
             if (config.APS) request?.variableSens ?: 0.0
             else if (config.NSCLIENT) processedDeviceStatusData.getAPSResult()?.variableSens ?: 0.0
             else 0.0
-        val ratioUsed = request?.autosensResult?.ratio ?: 1.0
         if (variableSens != isfMgdl && variableSens != 0.0 && isfMgdl != null) {
-            var text = if (ratioUsed != 1.0 && ratioUsed != lastAutosensData?.autosensResult?.ratio) String.format(Locale.getDefault(), "%.0f%%\n", ratioUsed * 100) else ""
-            text += String.format(
+            views.setTextViewText(R.id.variable_sensitivity, String.format(
                 Locale.getDefault(), "%1$.1f→%2$.1f",
                 profileUtil.fromMgdlToUnits(isfMgdl, profileFunction.getUnits()),
                 profileUtil.fromMgdlToUnits(variableSens, profileFunction.getUnits())
-            )
-            views.setTextViewText(R.id.variable_sensitivity, text)
+            ))
             views.setViewVisibility(R.id.variable_sensitivity, View.VISIBLE)
         } else views.setViewVisibility(R.id.variable_sensitivity, View.GONE)
 

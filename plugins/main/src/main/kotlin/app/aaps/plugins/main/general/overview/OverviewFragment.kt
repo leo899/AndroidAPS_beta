@@ -1119,6 +1119,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
 
     private fun updateSensitivity() {
         _binding ?: return
+        val useAutosens = constraintChecker.isAutosensModeEnabled().value()
         val lastAutosensData = iobCobCalculator.ads.getLastAutosensData("Overview", aapsLogger, dateUtil)
         if (config.NSCLIENT && sp.getBoolean(app.aaps.core.utils.R.string.key_used_autosens_on_main_phone, false) ||
             !config.NSCLIENT && constraintChecker.isAutosensModeEnabled().value()
@@ -1128,10 +1129,11 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
             binding.infoLayout.sensitivityIcon.setImageResource(app.aaps.core.objects.R.drawable.ic_x_swap_vert)
         }
 
-        binding.infoLayout.sensitivity.text =
-            lastAutosensData?.let {
-                String.format(Locale.ENGLISH, "AS: %.0f%%", it.autosensResult.ratio * 100)
-            } ?: ""
+        binding.infoLayout.sensitivity.visibility = if (useAutosens) View.VISIBLE else View.GONE
+        binding.infoLayout.sensitivity.text = lastAutosensData?.let {
+            String.format(Locale.ENGLISH, "%.0f%%", it.autosensResult.ratio * 100)
+        } ?: ""
+
         // Show variable sensitivity
         val profile = profileFunction.getProfile()
         val request = loop.lastRun?.request
@@ -1144,14 +1146,16 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         val ratioUsed = request?.autosensResult?.ratio ?: 1.0
 
         if (variableSens != isfMgdl && variableSens != 0.0 && isfMgdl != null) {
-            var text = if (ratioUsed != 1.0 && ratioUsed != lastAutosensData?.autosensResult?.ratio) String.format(Locale.getDefault(), "Alg: %.0f%%\n", ratioUsed * 100) else ""
-            text += String.format(
+            if (preferences.get(BooleanKey.ApsDynIsfAdjustSensitivity))
+                // Replace non-working Autosens with TDD-based sensitivity
+                binding.infoLayout.sensitivity.text =  String.format(Locale.ENGLISH, "%.0f%%\n", ratioUsed * 100)
+
+            binding.infoLayout.variableSensitivity.text = String.format(
                 Locale.getDefault(), "%1$.1f→%2$.1f (%3$.1f)",
                 profileUtil.fromMgdlToUnits(isfMgdl, profileFunction.getUnits()),
                 profileUtil.fromMgdlToUnits(variableSens, profileFunction.getUnits()),
                 profileUtil.fromMgdlToUnits(isfForCarbs ?: 0.0, profileFunction.getUnits())
             )
-            binding.infoLayout.variableSensitivity.text = text
             binding.infoLayout.variableSensitivity.visibility = View.VISIBLE
         } else binding.infoLayout.variableSensitivity.visibility = View.GONE
     }
