@@ -16,6 +16,7 @@ import app.aaps.core.interfaces.db.PersistenceLayer
 import app.aaps.core.interfaces.iob.GlucoseStatusProvider
 import app.aaps.core.interfaces.iob.IobCobCalculator
 import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.logging.LTag
 import app.aaps.core.interfaces.notifications.Notification
 import app.aaps.core.interfaces.plugin.ActivePlugin
 import app.aaps.core.interfaces.plugin.PluginBase
@@ -128,7 +129,7 @@ class SafetyPlugin @Inject constructor(
         if (!active) return "inactive period"
 
         val profile = profileFunction.getProfile() ?: return "no profile"
-        val profileTarget = profile?.getTargetMgdl() ?: 99.0
+        val profileTarget = profile.getTargetMgdl()
         val cobInfo = iobCobCalculator.getCobInfo("SafetyPlugin_NightMode")
         val cob = cobInfo.displayCob
         if (preferences.get(BooleanKey.NightModeWithCOB) && cob != null) {
@@ -152,6 +153,7 @@ class SafetyPlugin @Inject constructor(
         val closedLoop = constraintChecker.isClosedLoopAllowed()
         if (!closedLoop.value()) value.set(false, rh.gs(R.string.smbnotallowedinopenloopmode), this)
         val nightModeResult = checkNightMode()
+        aapsLogger.debug(LTag.CONSTRAINTS, "Night mode result (null == active): $nightModeResult")
         if (nightModeResult == null)
             value.set(false, rh.gs(R.string.night_mode_smbs_disabled), this)
         else
