@@ -119,9 +119,13 @@ class SafetyPlugin @Inject constructor(
 
         val currentTimeMillis = System.currentTimeMillis()
         val midnight = MidnightTime.calc(currentTimeMillis)
-        val start = midnight + LocalTime.parse(preferences.get(StringKey.NightModeBegin), ISODateTimeFormat.timeElementParser()).millisOfDay
-        val end = midnight + LocalTime.parse(preferences.get(StringKey.NightModeEnd), ISODateTimeFormat.timeElementParser()).millisOfDay
-        val offset = profileUtil.convertToMgdlDetect(preferences.get(UnitDoubleKey.NightModeBgOffset))
+        val startStr = preferences.get(StringKey.NightModeBegin)
+        val endStr = preferences.get(StringKey.NightModeEnd)
+        val start = midnight + LocalTime.parse(startStr, ISODateTimeFormat.timeElementParser()).millisOfDay
+        val end = midnight + LocalTime.parse(endStr, ISODateTimeFormat.timeElementParser()).millisOfDay
+        val offset = profileUtil.convertToMgdlDetect(preferences.get(UnitDoubleKey.NightModeBgOffset)).toInt()
+
+        aapsLogger.debug(LTag.CONSTRAINTS, "Night mode: start=$start, end=$end, offset=$offset mg/dl)")
 
         val active =
             if (end > start) currentTimeMillis in start..<end
@@ -254,16 +258,28 @@ class SafetyPlugin @Inject constructor(
             .put(StringKey.SafetyAge, preferences)
             .put(DoubleKey.SafetyMaxBolus, preferences)
             .put(IntKey.SafetyMaxCarbs, preferences)
+            .put(UnitDoubleKey.NightModeBgOffset, preferences)
+            .put(StringKey.NightModeBegin, preferences)
+            .put(StringKey.NightModeEnd, preferences)
+            .put(BooleanKey.NightMode, preferences)
+            .put(BooleanKey.NightModeLowTT, preferences)
+            .put(BooleanKey.NightModeWithCOB, preferences)
 
     override fun applyConfiguration(configuration: JSONObject) {
         configuration
             .store(StringKey.SafetyAge, preferences)
             .store(DoubleKey.SafetyMaxBolus, preferences)
             .store(IntKey.SafetyMaxCarbs, preferences)
+            .store(UnitDoubleKey.NightModeBgOffset, preferences)
+            .store(StringKey.NightModeBegin, preferences)
+            .store(StringKey.NightModeEnd, preferences)
+            .store(BooleanKey.NightMode, preferences)
+            .store(BooleanKey.NightModeLowTT, preferences)
+            .store(BooleanKey.NightModeWithCOB, preferences)
     }
 
     override fun addPreferenceScreen(preferenceManager: PreferenceManager, parent: PreferenceScreen, context: Context, requiredKey: String?) {
-        if (requiredKey != null) return
+        if (requiredKey != null && requiredKey != "safety_night_mode_settings") return
         val category = PreferenceCategory(context)
         parent.addPreference(category)
         category.apply {
@@ -283,12 +299,16 @@ class SafetyPlugin @Inject constructor(
             addPreference(AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.SafetyMaxBolus, title = app.aaps.core.ui.R.string.max_bolus_title))
             addPreference(AdaptiveIntPreference(ctx = context, intKey = IntKey.SafetyMaxCarbs, title = app.aaps.core.ui.R.string.max_carbs_title))
             addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.AlwaysPromoteAdvancedFiltering, title = R.string.always_promote_advanced_filtering_title, summary = R.string.always_promote_advanced_filtering_summary))
-            addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.NightMode, title = R.string.night_mode))
-            addPreference(AdaptiveStringPreference(ctx = context, validatorParams = DefaultEditTextValidator.Parameters(testType = EditTextValidator.TEST_TIME), stringKey = StringKey.NightModeBegin, title = R.string.night_mode_begin))
-            addPreference(AdaptiveStringPreference(ctx = context, validatorParams = DefaultEditTextValidator.Parameters(testType = EditTextValidator.TEST_TIME), stringKey = StringKey.NightModeEnd, title = R.string.night_mode_end))
-            addPreference(AdaptiveUnitPreference(ctx = context, unitKey = UnitDoubleKey.NightModeBgOffset, dialogMessage = R.string.night_mode_bg_offset_summary, title = R.string.night_mode_bg_offset))
-            addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.NightModeWithCOB, title = R.string.night_mode_cob))
-            addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.NightModeLowTT, title = R.string.night_mode_lowtt))
+            addPreference(preferenceManager.createPreferenceScreen(context).apply {
+                key = "safety_night_mode_settings"
+                title = rh.gs(R.string.night_mode)
+                addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.NightMode, title = R.string.night_mode))
+                addPreference(AdaptiveStringPreference(ctx = context, validatorParams = DefaultEditTextValidator.Parameters(testType = EditTextValidator.TEST_TIME), stringKey = StringKey.NightModeBegin, title = R.string.night_mode_begin))
+                addPreference(AdaptiveStringPreference(ctx = context, validatorParams = DefaultEditTextValidator.Parameters(testType = EditTextValidator.TEST_TIME), stringKey = StringKey.NightModeEnd, title = R.string.night_mode_end))
+                addPreference(AdaptiveUnitPreference(ctx = context, unitKey = UnitDoubleKey.NightModeBgOffset, dialogMessage = R.string.night_mode_bg_offset_summary, title = R.string.night_mode_bg_offset))
+                addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.NightModeWithCOB, title = R.string.night_mode_cob))
+                addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.NightModeLowTT, title = R.string.night_mode_lowtt))
+            })
         }
     }
 }
