@@ -157,7 +157,7 @@
     <string name="no_watch_connected">(No Watch Connected)</string>
     <string name="pump_status">Pump status</string>
     <string name="loop_status">Loop status</string>
-    <string name="wizard_result">Calc. Wizard:\nInsulin: %1$.2fU\nCarbs: %2$dg</string>
+    <string name="wizard_result">Calc. Wizard:\nInsulin: %1$.2fU\nCarbs: %2$dg\nCarb time: %3$dmin</string>
     <string name="quick_wizard_not_available">Selected quickwizard no longer available, please refresh your tile</string>
     <string name="quick_wizard_message">QuickWizard: %1$s\nInsulin: %2$.2fU\nCarbs: %3$dg</string>
     <string name="user_action_not_available">Selected User Action %1$s is no longer available, please refresh your tile</string>

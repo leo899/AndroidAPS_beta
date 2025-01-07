@@ -69,6 +69,7 @@
     <string name="pref_prime_in_menu">Первичное заполнение в меню</string>
     <string name="pref_single_target">Единичная цель</string>
     <string name="pref_wizard_percentage">Процент калькулятора</string>
+    <string name="pref_wizard_delay">Задержка калькулятора</string>
     <string name="pref_complication_tap_action">Действия при нажатии кнопки расширений</string>
     <string name="pref_unicode_in_complications">Юникод в дополнениях</string>
     <string name="pref_version">Версия:</string>

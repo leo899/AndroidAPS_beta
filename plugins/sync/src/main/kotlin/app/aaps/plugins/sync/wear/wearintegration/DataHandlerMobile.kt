@@ -134,6 +134,7 @@ class DataHandlerMobile @Inject constructor(
 
     private var lastBolusWizard: BolusWizard? = null
     private var lastQuickWizardEntry: QuickWizardEntry? = null
+    private var lastCarbTime: Pair<Long, Int>? = null
 
     init {
         // From Wear
@@ -311,7 +312,6 @@ class DataHandlerMobile @Inject constructor(
             .subscribe({
                            aapsLogger.debug(LTag.WEAR, "ActionWizardConfirmed received $it from ${it.sourceNodeId}")
 
-                           var carbTime: Long? = null
                            var carbTimeOffset: Long = 0
                            var useAlarm = false
                            val currentTime = Calendar.getInstance().timeInMillis
@@ -324,18 +324,23 @@ class DataHandlerMobile @Inject constructor(
                                if (lastBolusWizard.timeStamp == it.timeStamp) { //use last calculation as confirmed string matches
                                    lastQuickWizardEntry?.let { lastQuickWizardEntry ->
                                        carbTimeOffset = lastQuickWizardEntry.carbTime().toLong()
-                                       carbTime = currentTime + (carbTimeOffset * 60000)
                                        useAlarm = lastQuickWizardEntry.useAlarm() == QuickWizardEntry.YES
                                        notes = lastQuickWizardEntry.buttonText()
 
                                        if (lastQuickWizardEntry.useEcarbs() == QuickWizardEntry.YES) {
-
                                            val timeOffset = lastQuickWizardEntry.time()
                                            eventTime += (timeOffset * 60000)
                                            carbs2 = lastQuickWizardEntry.carbs2()
                                            duration = lastQuickWizardEntry.duration()
                                        }
+                                   } ?: lastCarbTime?.let { lastCarbTime ->
+                                       if (lastCarbTime.first == lastBolusWizard.timeStamp) {
+                                           useAlarm = lastCarbTime.second > 0 && preferences.get(BooleanKey.WearWizardAlarm)
+                                           carbTimeOffset = lastCarbTime.second.toLong()
+                                       }
                                    }
+
+                                   val carbTime = if (carbTimeOffset > 0) currentTime + (carbTimeOffset * 60000) else null
                                    doBolus(lastBolusWizard.calculatedTotalInsulin, lastBolusWizard.carbs, carbTime, 0, lastBolusWizard.createBolusCalculatorResult(), notes)
                                    doECarbs(carbs2, eventTime, duration, notes)
 
@@ -344,6 +349,7 @@ class DataHandlerMobile @Inject constructor(
                                    }
                                }
                            }
+                           lastCarbTime = null
                            lastBolusWizard = null
                            lastQuickWizardEntry = null
                        }, fabricPrivacy::logException)
@@ -500,7 +506,8 @@ class DataHandlerMobile @Inject constructor(
             return
         }
         val message =
-            rh.gs(R.string.wizard_result, bolusWizard.calculatedTotalInsulin, bolusWizard.carbs) + "\n_____________\n" + bolusWizard.explainShort()
+            rh.gs(R.string.wizard_result, bolusWizard.calculatedTotalInsulin, bolusWizard.carbs, command.delay) + "\n_____________\n" + bolusWizard.explainShort()
+        lastCarbTime = Pair(bolusWizard.timeStamp, command.delay)
         lastBolusWizard = bolusWizard
         lastQuickWizardEntry = null
         rxBus.send(

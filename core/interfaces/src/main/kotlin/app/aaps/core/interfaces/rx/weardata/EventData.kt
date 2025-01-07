@@ -100,7 +100,7 @@ sealed class EventData : Event() {
     data class ActionProfileSwitchPreCheck(val timeShift: Int, val percentage: Int) : EventData()
 
     @Serializable
-    data class ActionWizardPreCheck(val carbs: Int, val percentage: Int) : EventData()
+    data class ActionWizardPreCheck(val carbs: Int, val percentage: Int, val delay: Int) : EventData()
 
     @Serializable
     data class ActionQuickWizardPreCheck(val guid: String) : EventData()

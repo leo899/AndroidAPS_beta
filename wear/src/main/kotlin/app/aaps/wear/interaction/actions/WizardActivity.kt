@@ -10,6 +10,7 @@ import android.widget.ImageView
 import app.aaps.core.interfaces.rx.events.EventWearToMobile
 import app.aaps.core.interfaces.rx.weardata.EventData.ActionWizardPreCheck
 import app.aaps.core.interfaces.utils.SafeParse
+import app.aaps.core.interfaces.utils.SafeParse.stringToDouble
 import app.aaps.core.keys.IntKey
 import app.aaps.wear.R
 import app.aaps.wear.interaction.utils.EditPlusMinusViewAdapter
@@ -21,11 +22,14 @@ class WizardActivity : ViewSelectorActivity() {
 
     var editCarbs: PlusMinusEditText? = null
     var editPercentage: PlusMinusEditText? = null
+    var editStartTime: PlusMinusEditText? = null
     var hasPercentage = false
+    var hasDelay = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setAdapter(MyGridViewPagerAdapter())
         hasPercentage = sp.getBoolean(R.string.key_wizard_percentage, false)
+        hasDelay = sp.getBoolean(R.string.key_wizard_delay, false)
     }
 
     override fun onPause() {
@@ -35,7 +39,12 @@ class WizardActivity : ViewSelectorActivity() {
 
     private inner class MyGridViewPagerAdapter : GridPagerAdapterNonDeprecated() {
 
-        override fun getColumnCount(arg0: Int): Int = if (hasPercentage) 3 else 2
+        override fun getColumnCount(arg0: Int): Int {
+            var base = 2
+            if (hasPercentage) base++
+            if (hasDelay) base++
+            return base
+        }
         override fun getRowCount(): Int = 1
         private val increment1 = preferences.get(IntKey.OverviewCarbsButtonIncrement1).toDouble()
         private val increment2 = preferences.get(IntKey.OverviewCarbsButtonIncrement2).toDouble()
@@ -46,7 +55,7 @@ class WizardActivity : ViewSelectorActivity() {
                 val viewAdapter = EditPlusMinusViewAdapter.getViewAdapter(sp, applicationContext, container, true)
                 val view = viewAdapter.root
                 val maxCarbs = sp.getInt(getString(R.string.key_treatments_safety_max_carbs), 48).toDouble()
-                val initValue = SafeParse.stringToDouble(editCarbs?.editText?.text.toString(), 0.0)
+                val initValue = stringToDouble(editCarbs?.editText?.text.toString(), 0.0)
                 editCarbs = PlusMinusEditText(viewAdapter, initValue, 0.0, maxCarbs, stepValues, DecimalFormat("0"), false, getString(R.string.action_carbs))
                 container.addView(view)
                 view.requestFocus()
@@ -57,8 +66,17 @@ class WizardActivity : ViewSelectorActivity() {
                 val viewAdapter = EditPlusMinusViewAdapter.getViewAdapter(sp, applicationContext, container, false)
                 val view = viewAdapter.root
                 val percentage = sp.getInt(getString(R.string.key_bolus_wizard_percentage), 100).toDouble()
-                val initValue = SafeParse.stringToDouble(editPercentage?.editText?.text.toString(), percentage)
+                val initValue = stringToDouble(editPercentage?.editText?.text.toString(), percentage)
                 editPercentage = PlusMinusEditText(viewAdapter, initValue, 10.0, 200.0, 5.0, DecimalFormat("0"), false, getString(R.string.action_percentage))
+                container.addView(view)
+                view
+            }
+
+            col == 2 && hasDelay -> {
+                val viewAdapter = EditPlusMinusViewAdapter.getViewAdapter(sp, applicationContext, container, false)
+                val view = viewAdapter.root
+                val initValue = stringToDouble(editStartTime?.editText?.text.toString(), 0.0)
+                editStartTime = PlusMinusEditText(viewAdapter, initValue, -60.0, 300.0, stepValues, DecimalFormat("0"), false, getString(R.string.action_start_min))
                 container.addView(view)
                 view
             }
@@ -68,7 +86,8 @@ class WizardActivity : ViewSelectorActivity() {
                 view.findViewById<ImageView>(R.id.confirmbutton)
                     .setOnClickListener {
                         val percentage = if (hasPercentage) SafeParse.stringToInt(editPercentage?.editText?.text.toString()) else sp.getInt(getString(R.string.key_bolus_wizard_percentage), 100)
-                        rxBus.send(EventWearToMobile(ActionWizardPreCheck(SafeParse.stringToInt(editCarbs?.editText?.text.toString()), percentage)))
+                        val startTime = if (hasDelay) SafeParse.stringToInt(editStartTime?.editText?.text.toString()) else sp.getInt(getString(R.string.key_bolus_wizard_delay), 0)
+                        rxBus.send(EventWearToMobile(ActionWizardPreCheck(SafeParse.stringToInt(editCarbs?.editText?.text.toString()), percentage, startTime)))
                         showToast(this@WizardActivity, R.string.action_wizard_confirmation)
                         finishAffinity()
                     }

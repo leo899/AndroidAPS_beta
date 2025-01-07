@@ -69,6 +69,7 @@
     <string name="pref_prime_in_menu">Prime in Menu</string>
     <string name="pref_single_target">Single Target</string>
     <string name="pref_wizard_percentage">Calculator Percentage</string>
+    <string name="pref_wizard_delay">Calculator Delay</string>
     <string name="pref_complication_tap_action">Complication Tap Action</string>
     <string name="pref_unicode_in_complications">Unicode in Complications</string>
     <string name="pref_version">Version:</string>
@@ -183,6 +184,7 @@
     <string name="key_quickwizard" translatable="false">QuickWizard</string>
     <string name="key_units_mgdl" translatable="false">units_mgdl</string>
     <string name="key_bolus_wizard_percentage" translatable="false">boluswizard_percentage</string>
+    <string name="key_bolus_wizard_delay" translatable="false">boluswizard_delay</string>
     <string name="key_treatments_safety_max_carbs" translatable="false">treatmentssafety_maxcarbs</string>
     <string name="key_treatments_safety_max_bolus" translatable="false">treatmentssafety_maxbolus</string>
     <string name="key_quick_wizard_data" translatable="false">quick_wizard_data</string>
@@ -191,6 +193,7 @@
     <string name="key_show_wizard" translatable="false">showWizard</string>
     <string name="key_single_target" translatable="false">singletarget</string>
     <string name="key_wizard_percentage" translatable="false">wizardpercentage</string>
+    <string name="key_wizard_delay" translatable="false">wizarddelay</string>
     <string name="key_show_graph_basal" translatable="false">show_graph_basal</string>
     <string name="key_show_graph_temp_basal" translatable="false">show_graph_temp_basal</string>
     <string name="key_show_graph_carbs" translatable="false">show_graph_carbs</string>

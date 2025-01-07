@@ -120,7 +120,7 @@
     <string name="no_watch_connected">(Часы не подключены)</string>
     <string name="pump_status">Статус помпы</string>
     <string name="loop_status">Статус цикла</string>
-    <string name="wizard_result">Мастер:\nИнсулин: %1$.2fед\nУгл: %2$dг</string>
+    <string name="wizard_result">Мастер:\nИнсулин: %1$.2fед\nУгл: %2$dг\nУгл через: %3$dмин</string>
     <string name="quick_wizard_not_available">Выбранный мастер быстрого доступа больше недоступен, обновите плитку</string>
     <string name="quick_wizard_message">Мастер: %1$s\nИнсулин: %2$.2fЕд\nУгл: %3$dg</string>
     <string name="user_action_not_available">Выбранное пользовательское действие %1$s более недоступно, пожалуйста, обновите плитку</string>
