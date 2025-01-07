@@ -166,7 +166,7 @@ class OverviewDataImpl @Inject constructor(
 
     override fun sensitivityText(showIsfForCarbs: Boolean, loop: Loop, iobCobCalculator: IobCobCalculator): String {
         val useAutosens =
-            if (config.NSCLIENT) sp.getBoolean(app.aaps.core.utils.R.string.key_used_autosens_on_main_phone, false)
+            if (config.AAPSCLIENT) sp.getBoolean(app.aaps.core.utils.R.string.key_used_autosens_on_main_phone, false)
             else constraintsChecker.isAutosensModeEnabled().value()
 
         val request = loop.lastRun?.request
@@ -186,7 +186,7 @@ class OverviewDataImpl @Inject constructor(
         val isfForCarbs = profileFunction.getProfile()?.getIsfMgdlForCarbs(dateUtil.now(), "Overview", config, processedDeviceStatusData)
         val variableSens =
             if (config.APS) request?.variableSens ?: 0.0
-            else if (config.NSCLIENT) processedDeviceStatusData.getAPSResult()?.variableSens ?: 0.0
+            else if (config.AAPSCLIENT) processedDeviceStatusData.getAPSResult()?.variableSens ?: 0.0
             else 0.0
         if (variableSens != 0.0 && isfMgdl != null) {
             if (useAutosens) text += "\n"

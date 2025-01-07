@@ -41,13 +41,18 @@ import app.aaps.core.interfaces.ui.UiInteraction
 import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.interfaces.utils.DecimalFormatter
 import app.aaps.core.interfaces.utils.TrendCalculator
+<<<<<<< HEAD
 import app.aaps.core.keys.BooleanKey
 import app.aaps.core.keys.IntKey
 import app.aaps.core.keys.Preferences
+=======
+import app.aaps.core.keys.DoubleKey
+>>>>>>> aaps/master
 import app.aaps.core.objects.extensions.directionToIcon
 import app.aaps.core.objects.extensions.displayText
 import app.aaps.core.objects.extensions.round
 import app.aaps.core.objects.profile.ProfileSealed
+import app.aaps.core.ui.dialogs.OKDialog
 import app.aaps.core.ui.extensions.toVisibility
 import app.aaps.core.ui.extensions.toVisibilityKeepSpace
 import app.aaps.ui.R
@@ -136,13 +141,18 @@ class Widget : AppWidgetProvider() {
         val pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         // Widgets allow click handlers to only launch pending intents
         views.setOnClickPendingIntent(R.id.widget_layout, pendingIntent)
-        views.setInt(R.id.widget_layout, "setBackgroundColor", Color.argb(alpha, 0, 0, 0))
+        if (config.APS)
+            views.setInt(R.id.widget_layout, "setBackgroundColor", Color.argb(alpha, 0, 0, 0))
+        if (config.AAPSCLIENT1)
+            views.setInt(R.id.widget_layout, "setBackgroundColor", Color.argb(alpha, 0xE8, 0xC5, 0x0C))
+        if (config.AAPSCLIENT2)
+            views.setInt(R.id.widget_layout, "setBackgroundColor", Color.argb(alpha, 0x0F, 0xBB, 0xE0))
 
         handler.post {
             if (config.appInitialized) {
                 val variableSens =
                     if (config.APS) loop.lastRun?.request?.variableSens
-                    else if (config.NSCLIENT) processedDeviceStatusData.getAPSResult()?.variableSens
+                    else if (config.AAPSCLIENT) processedDeviceStatusData.getAPSResult()?.variableSens
                     else null
 
                 // status line doesn't have space only if 2 lines are used (AS + VS)
@@ -189,7 +199,7 @@ class Widget : AppWidgetProvider() {
                         updateAge(views, R.id.pb_age, TE.Type.PUMP_BATTERY_CHANGE, IntKey.OverviewBageWarning, IntKey.OverviewBageCritical)
                     }
 
-                    if (!config.NSCLIENT) {
+                    if (!config.AAPSCLIENT) {
                         // The Omnipod Eros does not report its battery level. However, some RileyLink alternatives do.
                         // Depending on the user's configuration, we will either show the battery level reported by the RileyLink or "n/a"
                         // Pump instance check is needed because at startup, the pump can still be VirtualPumpPlugin and that will cause a crash
