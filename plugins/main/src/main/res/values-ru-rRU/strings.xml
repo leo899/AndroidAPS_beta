@@ -109,6 +109,7 @@
     <string name="sms_read_status_failed">Статус чтения: неудача</string>
     <string name="sms_profile_switch_created">Переключатель профиля создан</string>
     <string name="sms_wrong_tbr_duration">Длительность временного базала TBR должна быть кратной %1$d минутам и больше 0.</string>
+    <string name="sms_notify_about_profile_switch">Уведомлять о смене профиля</string>
     <string name="a11y_otp_qr_code">QR код для создания одноразового пароля</string>
     <string name="disabled_loop">Зцикл не работает</string>
     <!-- Food-->

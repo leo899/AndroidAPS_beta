@@ -13,6 +13,8 @@ import app.aaps.core.interfaces.queue.CommandQueue
 import app.aaps.core.interfaces.resources.ResourceHelper
 import app.aaps.core.interfaces.smsCommunicator.SmsCommunicator
 import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.keys.BooleanKey
+import app.aaps.core.keys.Preferences
 import dagger.android.HasAndroidInjector
 import javax.inject.Inject
 
@@ -32,6 +34,7 @@ class CommandSetProfile(
     @Inject lateinit var config: Config
     @Inject lateinit var persistenceLayer: PersistenceLayer
     @Inject lateinit var instantiator: Instantiator
+    @Inject lateinit var preferences: Preferences
 
     init {
         injector.androidInjector().inject(this)
@@ -51,7 +54,7 @@ class CommandSetProfile(
         // Send SMS notification if ProfileSwitch is coming from NS
         val profileSwitch = persistenceLayer.getEffectiveProfileSwitchActiveAt(dateUtil.now())
         if (profileSwitch != null && r.enacted && hasNsId && !config.AAPSCLIENT) {
-            if (smsCommunicator.isEnabled() && !config.doNotSendSmsOnProfileChange())
+            if (smsCommunicator.isEnabled() && !config.doNotSendSmsOnProfileChange() && !preferences.get(BooleanKey.SmsReportProfileSwitch))
                 smsCommunicator.sendNotificationToAllNumbers(rh.gs(app.aaps.core.ui.R.string.profile_set_ok))
         }
     }

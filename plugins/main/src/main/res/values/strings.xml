@@ -112,6 +112,7 @@
     <string name="sms_profile_switch_created">Profile switch created</string>
     <string name="sms_wrong_tbr_duration">TBR duration must be a multiple of %1$d minutes and greater than 0.</string>
     <string name="a11y_otp_qr_code">QR Code for setup one time password</string>
+    <string name="sms_notify_about_profile_switch">Notify about profile switch</string>
 
     <string name="disabled_loop">Loop Disabled</string>
 

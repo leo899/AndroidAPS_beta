@@ -1304,6 +1304,7 @@ class SmsCommunicatorPlugin @Inject constructor(
                 )
             )
             addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.SmsAllowRemoteCommands, title = R.string.smscommunicator_remote_commands_allowed))
+            addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.SmsReportProfileSwitch, title = R.string.sms_notify_about_profile_switch))
             addPreference(AdaptiveIntPreference(ctx = context, intKey = IntKey.SmsRemoteBolusDistance, summary = R.string.smscommunicator_remote_bolus_min_distance_summary, title = R.string.smscommunicator_remote_bolus_min_distance))
             addPreference(
                 AdaptiveStringPreference(
