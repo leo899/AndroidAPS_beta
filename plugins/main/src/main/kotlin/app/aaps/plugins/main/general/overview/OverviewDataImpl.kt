@@ -164,7 +164,7 @@ class OverviewDataImpl @Inject constructor(
                 ?: "${rh.gs(app.aaps.core.ui.R.string.base_basal_rate_label)}: ${rh.gs(app.aaps.core.ui.R.string.pump_base_basal_rate, profile.getBasal())}"
         } ?: rh.gs(app.aaps.core.ui.R.string.value_unavailable_short)
 
-    override fun sensitivityText(showIsfForCarbs: Boolean, loop: Loop, iobCobCalculator: IobCobCalculator): String {
+    override fun autoOrTddSensRatio(loop: Loop, iobCobCalculator: IobCobCalculator): Double? {
         val useAutosens =
             if (config.AAPSCLIENT) sp.getBoolean(app.aaps.core.utils.R.string.key_used_autosens_on_main_phone, false)
             else constraintsChecker.isAutosensModeEnabled().value()
@@ -173,15 +173,22 @@ class OverviewDataImpl @Inject constructor(
         val lastAutosensData = iobCobCalculator.ads.getLastAutosensData("Overview", aapsLogger, dateUtil)
         val ratioUsed = request?.autosensResult?.ratio ?: 1.0
 
-        var text = ""
-        if (useAutosens) {
-            text += if (preferences.get(BooleanKey.ApsDynIsfAdjustSensitivity))
-                String.format(Locale.ENGLISH, "%.0f%%", ratioUsed * 100)
+        return if (useAutosens) {
+            if (preferences.get(BooleanKey.ApsDynIsfAdjustSensitivity))
+                ratioUsed
             else
-                lastAutosensData?.let { String.format(Locale.ENGLISH, "%.0f%%", it.autosensResult.ratio * 100) } ?: ""
-        }
+                lastAutosensData?.autosensResult?.ratio ?: 1.0
+        } else null
+    }
+
+    override fun sensitivityText(showIsfForCarbs: Boolean, loop: Loop, iobCobCalculator: IobCobCalculator): String {
+        val autosensRatio = autoOrTddSensRatio(loop, iobCobCalculator)
+        var text = ""
+        if (autosensRatio != null)
+            text += String.format(Locale.ENGLISH, "%.0f%%", autosensRatio * 100)
 
         // Show variable sensitivity
+        val request = loop.lastRun?.request
         val isfMgdl = profileFunction.getProfile()?.getProfileIsfMgdl()
         val isfForCarbs = profileFunction.getProfile()?.getIsfMgdlForCarbs(dateUtil.now(), "Overview", config, processedDeviceStatusData)
         val variableSens =
@@ -189,7 +196,7 @@ class OverviewDataImpl @Inject constructor(
             else if (config.AAPSCLIENT) processedDeviceStatusData.getAPSResult()?.variableSens ?: 0.0
             else 0.0
         if (variableSens != 0.0 && isfMgdl != null) {
-            if (useAutosens) text += "\n"
+            if (autosensRatio != null) text += "\n"
             text += if (!showIsfForCarbs || isfForCarbs == null)
                 String.format(
                     Locale.getDefault(), "%1$.1f→%2$.1f",

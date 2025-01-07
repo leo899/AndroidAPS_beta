@@ -41,13 +41,10 @@ import app.aaps.core.interfaces.ui.UiInteraction
 import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.interfaces.utils.DecimalFormatter
 import app.aaps.core.interfaces.utils.TrendCalculator
-<<<<<<< HEAD
 import app.aaps.core.keys.BooleanKey
+import app.aaps.core.keys.DoubleKey
 import app.aaps.core.keys.IntKey
 import app.aaps.core.keys.Preferences
-=======
-import app.aaps.core.keys.DoubleKey
->>>>>>> aaps/master
 import app.aaps.core.objects.extensions.directionToIcon
 import app.aaps.core.objects.extensions.displayText
 import app.aaps.core.objects.extensions.round
@@ -373,14 +370,18 @@ class Widget : AppWidgetProvider() {
     }
 
     private fun updateSensitivity(views: RemoteViews) {
-        // Also handles TDD-based sens
-        if (constraintChecker.isAutosensModeEnabled().value())
-            views.setImageViewResource(if (isMini) R.id.sensitivity_icon_mini else R.id.sensitivity_icon, app.aaps.core.objects.R.drawable.ic_swap_vert_black_48dp_green)
-        else
-            views.setImageViewResource(if (isMini) R.id.sensitivity_icon_mini else R.id.sensitivity_icon, app.aaps.core.objects.R.drawable.ic_x_swap_vert)
+        views.setImageViewResource(
+            if (isMini) R.id.sensitivity_icon_mini else R.id.sensitivity_icon,
+           overviewData.autoOrTddSensRatio(loop, iobCobCalculator)?.let {
+                when {
+                    it > 1.0 -> app.aaps.core.objects.R.drawable.ic_as_above
+                    it < 1.0 -> app.aaps.core.objects.R.drawable.ic_as_below
+                    else     -> app.aaps.core.objects.R.drawable.ic_swap_vert_black_48dp_green
+                }
+            } ?: app.aaps.core.objects.R.drawable.ic_x_swap_vert
+        )
 
         val text = overviewData.sensitivityText(false, loop, iobCobCalculator)
-
         views.setTextViewText(R.id.sensitivity, text)
         views.setViewVisibility(R.id.sensitivity, if (text.isEmpty()) View.GONE else View.VISIBLE)
     }
