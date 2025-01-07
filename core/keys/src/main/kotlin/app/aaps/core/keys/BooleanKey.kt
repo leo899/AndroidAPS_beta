@@ -55,8 +55,8 @@ enum class BooleanKey(
     ApsResistanceLowersTarget("resistance_lowers_target", true, defaultedBySM = true), // change from default false
     ApsAlwaysUseShortDeltas("always_use_shortavg", false, defaultedBySM = true, hideParentScreenIfHidden = true),
     ApsDynIsfAdjustSensitivity("dynisf_adjust_sensitivity", false, defaultedBySM = true, dependency = ApsUseDynamicSensitivity), // change from default false
-    ApsDynIsfUseProfileSens("dynisf_use_profile_sens", false, dependency = ApsUseDynamicSensitivity),
-    ApsDynIsfProfilePercentage("dynisf_use_profile_percentage", true, dependency = ApsUseDynamicSensitivity, negativeDependency = ApsDynIsfUseProfileSens),
+    ApsDynIsfUseProfileSens("dynisf_use_profile_sens", false, defaultedBySM = false, dependency = ApsUseDynamicSensitivity),
+    ApsDynIsfProfilePercentage("dynisf_use_profile_percentage", true, defaultedBySM = true, dependency = ApsUseDynamicSensitivity, negativeDependency = ApsDynIsfUseProfileSens),
     ApsAmaAutosensAdjustTargets("autosens_adjust_targets", true, defaultedBySM = true),
     ApsAutoIsfHighTtRaisesSens("high_temptarget_raises_sensitivity", false, defaultedBySM = true),
     ApsAutoIsfLowTtLowersSens("low_temptarget_lowers_sensitivity", false, defaultedBySM = true),
@@ -117,9 +117,9 @@ enum class BooleanKey(
     WearNotifyOnSmb(key = "wear_notifySMB", defaultValue = true),
     WearBroadcastData(key = "wear_broadcast_data", defaultValue = false),
 
-    AlwaysPromoteAdvancedFiltering(key = "always_promote_advanced_filtering", defaultValue = false),
-    DisableUpdatesChecker(key = "skip_updates_check", defaultValue = false),
-    EngineeringMode("force_engineering_mode", false),
+    AlwaysPromoteAdvancedFiltering("always_promote_advanced_filtering", false),
+    DisableUpdatesChecker("skip_updates_check", false, defaultedBySM = false),
+    EngineeringMode("force_engineering_mode", false, defaultedBySM = false),
     NightMode("night_mode", false),
     NightModeWithCOB("night_mode_cob", true, dependency = NightMode),
     NightModeLowTT("night_mode_low_tt", true, dependency = NightMode)

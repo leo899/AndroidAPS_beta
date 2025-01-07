@@ -1,5 +1,7 @@
 package app.aaps.core.keys
 
+import app.aaps.core.keys.BooleanKey
+
 enum class IntKey(
     override val key: String,
     override val defaultValue: Int,
@@ -50,7 +52,7 @@ enum class IntKey(
     ApsCarbsRequestThreshold("carbsReqThreshold", 1, 1, 10, defaultedBySM = true),
     ApsAutoIsfHalfBasalExerciseTarget("half_basal_exercise_target", 160, 120, 200, defaultedBySM = true),
     ApsAutoIsfIobThPercent("iob_threshold_percent", 100, 10, 100, defaultedBySM = true),
-    ApsDynIsfAdjustmentFactor("DynISFAdjust", 50, 1, 200, dependency = BooleanKey.ApsUseDynamicSensitivity),
+    ApsDynIsfAdjustmentFactor("DynISFAdjust", 50, 1, 200, dependency = BooleanKey.ApsUseDynamicSensitivity, negativeDependency = BooleanKey.ApsDynIsfUseProfileSens),
     ApsDynIsfVelocity("DynISFVelocity", 80, 1, 200, dependency = BooleanKey.ApsUseDynamicSensitivity),
     AutosensPeriod("openapsama_autosens_period", 24, 4, 24, calculatedDefaultValue = true),
     MaintenanceLogsAmount("maintenance_logs_amount", 2, 1, 10, defaultedBySM = true),

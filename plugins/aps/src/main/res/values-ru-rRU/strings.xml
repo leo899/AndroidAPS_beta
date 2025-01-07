@@ -211,4 +211,5 @@
     <string name="openapsama_iob_threshold_percent_summary" formatted="false">Процент maxIOB выше которого SMB отключаются.\nЗначение по умолчанию: 100%\nПри значении в 100%, функция не имеет эффекта.</string>
     <string name="openapsama_iob_threshold_percent">Пороговый процент maxIOB для SMB\n(iob_threshold_percent)</string>
     <string name="dynisf_velocity">Коэффициент изменения ФЧИ DynamicISF</string>
+    <string name="dynisf_settings_title">DynamicISF</string>
 </resources>
