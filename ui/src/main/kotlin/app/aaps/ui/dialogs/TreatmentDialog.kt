@@ -23,13 +23,9 @@ import app.aaps.core.interfaces.pump.defs.determineCorrectBolusStepSize
 import app.aaps.core.interfaces.queue.Callback
 import app.aaps.core.interfaces.queue.CommandQueue
 import app.aaps.core.interfaces.resources.ResourceHelper
-import app.aaps.core.interfaces.smsCommunicator.Sms
-import app.aaps.core.interfaces.smsCommunicator.SmsCommunicator
 import app.aaps.core.interfaces.ui.UiInteraction
 import app.aaps.core.interfaces.utils.DecimalFormatter
 import app.aaps.core.interfaces.utils.SafeParse
-import app.aaps.core.keys.BooleanKey
-import app.aaps.core.keys.StringKey
 import app.aaps.core.objects.constraints.ConstraintObject
 import app.aaps.core.objects.extensions.formatColor
 import app.aaps.core.ui.dialogs.OKDialog
@@ -48,7 +44,6 @@ import kotlin.math.abs
 
 class TreatmentDialog : DialogFragmentWithDate() {
 
-    @Inject lateinit var smsCommunicator: SmsCommunicator
     @Inject lateinit var constraintChecker: ConstraintsChecker
     @Inject lateinit var rh: ResourceHelper
     @Inject lateinit var activePlugin: ActivePlugin
@@ -110,11 +105,8 @@ class TreatmentDialog : DialogFragmentWithDate() {
         super.onViewCreated(view, savedInstanceState)
 
         if (config.NSCLIENT) {
-            if(preferences.get(BooleanKey.SmsAllowRemoteCommands)) {
-                binding.recordOnly.isChecked = preferences.get(StringKey.SmsReceiverNumber).isNullOrBlank()
-            } else {
-                binding.recordOnly.isChecked = true
-            }
+            binding.recordOnly.isChecked = true
+            binding.recordOnly.isEnabled = false
         }
         val maxCarbs = constraintChecker.getMaxCarbsAllowed().value().toDouble()
         val maxInsulin = constraintChecker.getMaxBolusAllowed().value()
@@ -149,12 +141,10 @@ class TreatmentDialog : DialogFragmentWithDate() {
         val pumpDescription = activePlugin.activePump.pumpDescription
         val insulin = SafeParse.stringToDouble(binding.insulin.text)
         val carbs = SafeParse.stringToInt(binding.carbs.text)
-        val phoneNumber = preferences.get(StringKey.SmsReceiverNumber)
         val recordOnlyChecked = binding.recordOnly.isChecked
         val actions: LinkedList<String?> = LinkedList()
         val insulinAfterConstraints = constraintChecker.applyBolusConstraints(ConstraintObject(insulin, aapsLogger)).value()
         val carbsAfterConstraints = constraintChecker.applyCarbsConstraints(ConstraintObject(carbs, aapsLogger)).value()
-        val sendSMS = preferences.get(BooleanKey.SmsAllowRemoteCommands) && !phoneNumber.isNullOrBlank()
 
         if (insulinAfterConstraints > 0) {
             actions.add(
@@ -166,13 +156,6 @@ class TreatmentDialog : DialogFragmentWithDate() {
             )
             if (recordOnlyChecked)
                 actions.add(rh.gs(app.aaps.core.ui.R.string.bolus_recorded_only).formatColor(context, rh, app.aaps.core.ui.R.attr.warningColor))
-            else if (sendSMS)
-                actions.add(
-                    rh.gs(
-                        app.aaps.core.ui.R.string.sms_bolus_notification
-                    ).formatColor(context, rh, app.aaps.core.ui.R.attr.warningColor)
-                )
-
             if (abs(insulinAfterConstraints - insulin) > pumpDescription.pumpType.determineCorrectBolusStepSize(insulinAfterConstraints))
                 actions.add(
                     rh.gs(app.aaps.core.ui.R.string.bolus_constraint_applied_warn, insulin, insulinAfterConstraints).formatColor(context, rh, app.aaps.core.ui.R.attr.warningColor)
@@ -201,17 +184,14 @@ class TreatmentDialog : DialogFragmentWithDate() {
                     detailedBolusInfo.insulin = insulinAfterConstraints
                     detailedBolusInfo.carbs = carbsAfterConstraints.toDouble()
                     detailedBolusInfo.context = context
-                    if (recordOnlyChecked || sendSMS) {
+                    if (recordOnlyChecked) {
                         if (detailedBolusInfo.insulin > 0)
-                            if (sendSMS)
-                                smsCommunicator.sendSMS(Sms(phoneNumber, rh.gs(app.aaps.core.ui.R.string.bolus) + " " + detailedBolusInfo.insulin))
-                            else
-                                disposable += persistenceLayer.insertOrUpdateBolus(
-                                    bolus = detailedBolusInfo.createBolus(),
-                                    action = action,
-                                    source = Sources.TreatmentDialog,
-                                    note = if (insulinAfterConstraints != 0.0) rh.gs(app.aaps.core.ui.R.string.record) else ""
-                                ).subscribe()
+                            disposable += persistenceLayer.insertOrUpdateBolus(
+                                bolus = detailedBolusInfo.createBolus(),
+                                action = action,
+                                source = Sources.TreatmentDialog,
+                                note = if (insulinAfterConstraints != 0.0) rh.gs(app.aaps.core.ui.R.string.record) else ""
+                            ).subscribe()
                         if (detailedBolusInfo.carbs > 0)
                             disposable += persistenceLayer.insertOrUpdateCarbs(
                                 carbs = detailedBolusInfo.createCarbs(),
