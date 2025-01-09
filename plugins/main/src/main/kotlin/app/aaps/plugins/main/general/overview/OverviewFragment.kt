@@ -18,6 +18,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.View.OnLongClickListener
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import android.widget.TextView
@@ -238,6 +239,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
 
         binding.activeProfile.setOnClickListener(this)
         binding.activeProfile.setOnLongClickListener(this)
+        binding.exerciseMode.setOnClickListener(this)
         binding.tempTarget.setOnClickListener(this)
         binding.tempTarget.setOnLongClickListener(this)
         binding.buttonsLayout.acceptTempButton.setOnClickListener(this)
@@ -376,6 +378,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         processAps()
         updateProfile()
         updateTemporaryTarget()
+        updateExerciseMode()
     }
 
     @Synchronized
@@ -415,6 +418,15 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                     activity,
                     ProtectionCheck.Protection.BOLUS,
                     UIRunnable { if (isAdded) uiInteraction.runTempTargetDialog(childFragmentManager) })
+
+                R.id.exercise_mode         -> protectionCheck.queryProtection(
+                    activity,
+                    ProtectionCheck.Protection.BOLUS,
+                    UIRunnable { if (isAdded) {
+                        val state = !preferences.get(BooleanKey.ApsAutoIsfExerciseMode)
+                        preferences.put(BooleanKey.ApsAutoIsfExerciseMode, state)
+                        updateExerciseMode()
+                    } })
 
                 R.id.active_profile      -> {
                     uiInteraction.runProfileViewerDialog(
@@ -641,6 +653,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                         list += event.hashCode()
                     }
             binding.buttonsLayout.userButtonsLayout.visibility = events.isNotEmpty().toVisibility()
+            binding.exerciseModeCard.visibility = (activePlugin.activeAPS.algorithm == APSResult.Algorithm.AUTO_ISF).toVisibility()
         }
         if (list != lastUserAction) {
             // Synchronize Watch Tiles with overview
@@ -1163,5 +1176,18 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
     private fun updateNotification() {
         _binding ?: return
         binding.notifications.let { notificationStore.updateNotifications(it) }
+    }
+
+    private fun updateExerciseMode() {
+        _binding ?: return
+        val enabled = preferences.get(BooleanKey.ApsAutoIsfExerciseMode)
+        with (binding.exerciseMode) {
+            setColorFilter(rh.gac(
+                if (enabled) app.aaps.core.ui.R.attr.ribbonTextWarningColor
+                else app.aaps.core.ui.R.attr.ribbonTextDefaultColor))
+            setBackgroundColor(rh.gac(
+                if (enabled) app.aaps.core.ui.R.attr.ribbonWarningColor
+                else app.aaps.core.ui.R.attr.ribbonDefaultColor))
+        }
     }
 }
