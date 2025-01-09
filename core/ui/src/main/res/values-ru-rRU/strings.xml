@@ -260,7 +260,7 @@
     <string name="percent">Процент</string>
     <string name="absolute">Абсолютный</string>
     <string name="waitingforpumpresult">Ожидание результата</string>
-    <string name="smb_shortname">Супер микро болюс SMB</string>
+    <string name="smb_shortname">SMB</string>
     <!--    CarbsReq-->
     <string name="carbsreq">Необходимо дополнительно %1$d г углеводов в течение %2$d минут</string>
     <!--    TDDStatsActivity-->
