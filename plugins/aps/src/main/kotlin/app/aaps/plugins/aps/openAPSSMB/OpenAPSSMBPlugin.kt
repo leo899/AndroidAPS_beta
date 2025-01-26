@@ -282,7 +282,7 @@ open class OpenAPSSMBPlugin @Inject constructor(
     private fun calculateRawDynIsf(profile: Profile): DynIsfResult {
         val dynIsfResult = DynIsfResult()
         val profileMultiplier = if (preferences.get(BooleanKey.ApsDynIsfProfilePercentage))
-            (profile as ProfileSealed.EPS).value.originalPercentage / 100.0
+            100.0 / (profile as ProfileSealed.EPS).value.originalPercentage
         else
             1.0
 
@@ -314,28 +314,23 @@ open class OpenAPSSMBPlugin @Inject constructor(
         var baseSensitivity = profile.getProfileIsfMgdl()
 
         // Always calculate TDD, it's used not just in sensitivity calculation
+        val useTDD = !preferences.get(BooleanKey.ApsDynIsfUseProfileSens)
         if (dynIsfResult.tddPartsCalculated()) {
             val tddStatus = TddStatus(dynIsfResult.tdd1D!!, dynIsfResult.tdd7D!!, dynIsfResult.tddLast24H!!, dynIsfResult.tddLast4H!!, dynIsfResult.tddLast8to4H!!)
             val tddWeightedFromLast8H = ((1.4 * tddStatus.tddLast4H) + (0.6 * tddStatus.tddLast8to4H)) * 3
-            dynIsfResult.tdd = ((tddWeightedFromLast8H * 0.33) + (tddStatus.tdd7D * 0.34) + (tddStatus.tdd1D * 0.33)) * preferences.get(IntKey.ApsDynIsfAdjustmentFactor) / 100.0
-        } else if (!preferences.get(BooleanKey.ApsDynIsfUseProfileSens))
-            return dynIsfResult
+            dynIsfResult.tdd = ((tddWeightedFromLast8H * 0.33) + (tddStatus.tdd7D * 0.34) + (tddStatus.tdd1D * 0.33)) * (preferences.get(IntKey.ApsDynIsfAdjustmentFactor) / 100.0)
 
-        // Calculate TDD based base sensitivity if needed
-        val useTDD = !preferences.get(BooleanKey.ApsDynIsfUseProfileSens)
-        if (useTDD) {
-            baseSensitivity = Round.roundTo(1800 / (dynIsfResult.tdd!! * (ln((normalTarget / dynIsfResult.insulinDivisor) + 1))), 0.1)
-            if (preferences.get(BooleanKey.ApsDynIsfProfilePercentage)) {
-                baseSensitivity *= profileMultiplier
-                aapsLogger.debug(LTag.APS, "Scaling TDD sensitivity by profile% - $profileMultiplier")
+            // Calculate TDD based base sensitivity if needed
+            if (useTDD) {
+                aapsLogger.debug(LTag.APS, "Using TDD base sensitivity")
+                baseSensitivity = Round.roundTo(1800.0 / (dynIsfResult.tdd!! * (ln((normalTarget / dynIsfResult.insulinDivisor) + 1))), 0.1)
+                if (preferences.get(BooleanKey.ApsDynIsfProfilePercentage)) {
+                    baseSensitivity *= profileMultiplier
+                    aapsLogger.debug(LTag.APS, "Scaling TDD sensitivity by profile% - $profileMultiplier")
+                }
             }
-        }
-
-        // Scale base sensitivity by profile% if needed
-        if (preferences.get(BooleanKey.ApsDynIsfProfilePercentage)) {
-            baseSensitivity /= profileMultiplier
-            aapsLogger.debug(LTag.APS, "Scaling sensitivity by profile% - $profileMultiplier")
-        }
+        } else if (useTDD)
+            return dynIsfResult
 
         // Scale base sensitivity by TT if needed
         var isTempTarget = false
@@ -362,9 +357,9 @@ open class OpenAPSSMBPlugin @Inject constructor(
         // Calculate variable sensitivity
         val sbg = ln((glucose / dynIsfResult.insulinDivisor) + 1)
         val scaler = ln((normalTarget / dynIsfResult.insulinDivisor) + 1) / sbg
-        dynIsfResult.variableSensitivity = baseSensitivity * (1 - (1 - scaler) * preferences.get(IntKey.ApsDynIsfVelocity) / 100)
+        dynIsfResult.variableSensitivity = baseSensitivity * (1 - (1 - scaler) * (preferences.get(IntKey.ApsDynIsfVelocity) / 100))
 
-        aapsLogger.debug(LTag.APS, "multiplier=$profileMultiplier tdd=${dynIsfResult.tdd} tddUsed=$useTDD vs=${dynIsfResult.variableSensitivity}")
+        aapsLogger.debug(LTag.APS, "multiplier=$profileMultiplier tdd=${dynIsfResult.tdd} vs=${dynIsfResult.variableSensitivity}")
         return dynIsfResult
     }
 
