@@ -53,7 +53,7 @@ fun generateGitRemote(): String {
 fun generateDate(): String {
     val stringBuilder: StringBuilder = StringBuilder()
     // showing only date prevents app to rebuild everytime
-    stringBuilder.append(SimpleDateFormat("yyyy.MM.dd").format(Date()))
+    stringBuilder.append(SimpleDateFormat("yyyy.MM.dd-HH.mm").format(Date()))
     return stringBuilder.toString()
 }
 
