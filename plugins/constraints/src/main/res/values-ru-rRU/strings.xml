@@ -36,6 +36,8 @@
     <string name="treatmentssafety_title">Безопасность терапии</string>
     <string name="always_promote_advanced_filtering_title">Всегда сообщать о продвинутой фильтрации</string>
     <string name="always_promote_advanced_filtering_summary">[ОПАСНО] Отключить белый список НМГ, позволет SMB быть включенными всегда на всех НМГ</string>
+    <string name="allow_recalculated_bgs_title">Разрешить пересчитанный ГК</string>
+    <string name="allow_recalculated_bgs_summary">[ОПАСНО] Разрешить расчет дельт и ускорения на пересчитанных значениях ГК</string>
     <!-- Objectives -->
     <string name="completed_well_done">Завершено, отлично!</string>
     <string name="not_completed_yet">Не завершено</string>

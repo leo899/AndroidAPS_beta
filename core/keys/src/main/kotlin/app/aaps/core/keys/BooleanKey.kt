@@ -127,5 +127,6 @@ enum class BooleanKey(
     EngineeringMode("force_engineering_mode", false, defaultedBySM = false),
     NightMode("night_mode", false),
     NightModeWithCOB("night_mode_cob", true, dependency = NightMode),
-    NightModeLowTT("night_mode_low_tt", true, dependency = NightMode)
+    NightModeLowTT("night_mode_low_tt", true, dependency = NightMode),
+    AllowRecalculatedBGs("allow_recalc_bgs", false)
 }

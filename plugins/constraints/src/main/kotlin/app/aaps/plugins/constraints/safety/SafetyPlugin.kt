@@ -298,6 +298,7 @@ class SafetyPlugin @Inject constructor(
             addPreference(AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.SafetyMaxBolus, title = app.aaps.core.ui.R.string.max_bolus_title))
             addPreference(AdaptiveIntPreference(ctx = context, intKey = IntKey.SafetyMaxCarbs, title = app.aaps.core.ui.R.string.max_carbs_title))
             addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.AlwaysPromoteAdvancedFiltering, title = R.string.always_promote_advanced_filtering_title, summary = R.string.always_promote_advanced_filtering_summary))
+            addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.AllowRecalculatedBGs, title = R.string.allow_recalculated_bgs_title, summary = R.string.allow_recalculated_bgs_summary))
             addPreference(preferenceManager.createPreferenceScreen(context).apply {
                 key = "safety_night_mode_settings"
                 title = rh.gs(R.string.night_mode)
