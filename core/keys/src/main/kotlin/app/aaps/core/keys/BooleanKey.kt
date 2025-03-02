@@ -128,5 +128,6 @@ enum class BooleanKey(
     NightMode("night_mode", false),
     NightModeWithCOB("night_mode_cob", true, dependency = NightMode),
     NightModeLowTT("night_mode_low_tt", true, dependency = NightMode),
-    AllowRecalculatedBGs("allow_recalc_bgs", false)
+    AllowRecalculatedBGs("allow_recalc_bgs", false),
+    LyumjevU200("lyumjev_u200", false),
 }
