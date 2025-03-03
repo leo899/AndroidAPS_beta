@@ -18,6 +18,8 @@ import app.aaps.core.interfaces.utils.HardLimits
 import app.aaps.core.keys.BooleanKey
 import app.aaps.core.keys.IntKey
 import app.aaps.core.keys.Preferences
+import app.aaps.core.objects.extensions.put
+import app.aaps.core.objects.extensions.store
 import app.aaps.core.validators.preferences.AdaptiveIntPreference
 import app.aaps.core.validators.preferences.AdaptiveSwitchPreference
 import org.json.JSONObject
@@ -41,8 +43,14 @@ class InsulinLyumjevPlugin @Inject constructor(
     override val id get(): Insulin.InsulinType = Insulin.InsulinType.OREF_LYUMJEV
     override val friendlyName get(): String = rh.gs(R.string.lyumjev)
 
-    override fun configuration(): JSONObject = JSONObject()
-    override fun applyConfiguration(configuration: JSONObject) {}
+    override fun configuration(): JSONObject =
+        JSONObject()
+            .put(BooleanKey.LyumjevU200, preferences)
+
+    override fun applyConfiguration(configuration: JSONObject) {
+        configuration
+            .store(BooleanKey.LyumjevU200, preferences)
+    }
 
     override fun commentStandardText(): String = rh.gs(R.string.lyumjev)
 
