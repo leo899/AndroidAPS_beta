@@ -481,7 +481,7 @@ class MainActivity : DaggerAppCompatActivityWithResult() {
             .replace(".com/", ":")
             .replace(".org/", ":")
             .replace(".net/", ":")
-        fabricPrivacy.setUserProperty("Mode", config.APPLICATION_ID + "-" + closedLoopEnabled)
+        fabricPrivacy.setUserProperty("Mode", config.BUILD_TYPE + "-" + closedLoopEnabled)
         fabricPrivacy.setUserProperty("Language", preferences.getIfExists(StringKey.GeneralLanguage) ?: Locale.getDefault().language)
         fabricPrivacy.setUserProperty("Version", config.VERSION_NAME + "-" + config.CUSTOM_PATCH_VERSION)
         fabricPrivacy.setUserProperty("HEAD", BuildConfig.HEAD)
