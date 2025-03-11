@@ -1,5 +1,6 @@
 package app.aaps.implementation.plugin
 
+import android.os.SystemClock
 import app.aaps.core.data.plugin.PluginType
 import app.aaps.core.interfaces.aps.APS
 import app.aaps.core.interfaces.aps.Sensitivity
@@ -27,7 +28,17 @@ class PluginStore @Inject constructor(
     private val aapsLogger: AAPSLogger
 ) : ActivePlugin {
 
-    lateinit var plugins: List<@JvmSuppressWildcards PluginBase>
+    private var _plugins: List<@JvmSuppressWildcards PluginBase>? = null
+    var plugins: List<@JvmSuppressWildcards PluginBase>
+        get() {
+            while (!initialized) SystemClock.sleep(10)
+            return _plugins!!
+        }
+        set(value) {
+            _plugins = value
+            initialized = true
+        }
+    private var initialized: Boolean = false
 
     private var activeBgSourceStore: BgSource? = null
     private var activePumpStore: Pump? = null
@@ -223,5 +234,4 @@ class PluginStore @Inject constructor(
         get() = getSpecificPluginsList(PluginType.SYNC) as ArrayList<Sync>
 
     override fun getPluginsList(): ArrayList<PluginBase> = ArrayList(plugins)
-
 }
