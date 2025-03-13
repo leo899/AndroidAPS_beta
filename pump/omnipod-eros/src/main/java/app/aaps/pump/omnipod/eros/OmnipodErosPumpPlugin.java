@@ -746,6 +746,7 @@ public class OmnipodErosPumpPlugin extends PumpPluginBase implements Pump, Riley
             status.put("timestamp", dateUtil.toISOString(dateUtil.now()));
 
             battery.put("percent", getBatteryLevel());
+            battery.put("rileylink_percent", rileyLinkServiceData.batteryLevel);
 
             extended.put("Version", version);
             try {

@@ -132,6 +132,9 @@ class NSDeviceStatusHandler @Inject constructor(
                 deviceStatusPumpData.isPercent = false
                 deviceStatusPumpData.voltage = it
             }
+            pump.battery?.rileyLinkPercent?.let {
+                deviceStatusPumpData.rileyLinkPercent = it
+            }
             pump.extended?.let {
                 val extended = StringBuilder()
                 val keys: Iterator<*> = it.keys()
