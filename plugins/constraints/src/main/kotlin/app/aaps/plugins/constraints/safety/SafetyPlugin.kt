@@ -1,9 +1,7 @@
 package app.aaps.plugins.constraints.safety
 
 import android.content.Context
-import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceCategory
-import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
 import androidx.preference.PreferenceScreen
 import app.aaps.core.data.aps.ApsMode
@@ -40,6 +38,7 @@ import app.aaps.core.keys.IntKey
 import app.aaps.core.keys.Preferences
 import app.aaps.core.keys.StringKey
 import app.aaps.core.interfaces.utils.MidnightTime
+import app.aaps.core.keys.UnitDoubleKey
 import app.aaps.core.objects.constraints.ConstraintObject
 import app.aaps.core.objects.extensions.put
 import app.aaps.core.objects.extensions.store
@@ -156,11 +155,19 @@ class SafetyPlugin @Inject constructor(
         val closedLoop = constraintChecker.isClosedLoopAllowed()
         if (!closedLoop.value()) value.set(false, rh.gs(R.string.smbnotallowedinopenloopmode), this)
         val nightModeResult = checkNightMode()
+
         aapsLogger.debug(LTag.CONSTRAINTS, "Night mode result (null == active): $nightModeResult")
         if (nightModeResult == null)
             value.set(false, rh.gs(R.string.night_mode_smbs_disabled), this)
-        else
-            value.set(true, rh.gs(R.string.night_mode_disabled, nightModeResult), this)
+
+        val bg = glucoseStatusProvider.glucoseStatusData?.glucose
+        if (bg != null && preferences.get(BooleanKey.EnableSmbBgThreshold)) {
+            val th = preferences.get(UnitDoubleKey.SmbBgThreshold)
+            if (bg <= th) {
+                aapsLogger.debug(LTag.CONSTRAINTS, "SMBs are disabled cause of an active BG threshold: $bg < ${profileUtil.convertToMgdlDetect(th)}")
+                value.set(false, rh.gs(R.string.bg_threshold_smbs_disabled, bg, profileUtil.convertToMgdlDetect(th)), this)
+            }
+        }
 
         return value
     }

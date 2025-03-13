@@ -130,4 +130,5 @@ enum class BooleanKey(
     NightModeLowTT("night_mode_low_tt", true, dependency = NightMode),
     AllowRecalculatedBGs("allow_recalc_bgs", false),
     LyumjevU200("lyumjev_u200", false),
+    EnableSmbBgThreshold("enable_smb_bg_threshold", false),
 }

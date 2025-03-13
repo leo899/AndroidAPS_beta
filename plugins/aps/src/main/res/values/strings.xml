@@ -233,4 +233,8 @@
     <string name="openapsama_iob_threshold_percent">maxIOB threshold percent for SMB\n(iob_threshold_percent)</string>
     <string name="dynisf_settings_title">DynamicISF</string>
 
+    <string name="enable_smb_bg_threshold">Enable SMB BG Threshold</string>
+    <string name="smb_bg_threshold_title">SMB BG Threshold</string>
+    <string name="smb_bg_threshold_summary">When BG is below this value, SMBs would be disabled.</string>
+
 </resources>

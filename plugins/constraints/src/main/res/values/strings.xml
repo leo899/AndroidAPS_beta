@@ -90,4 +90,6 @@
     <string name="night_mode_smbs_disabled">SMBs are disabled because of an active night mode</string>
     <string name="night_mode_disabled">Night mode is disabled: %1$s</string>
 
+    <!-- BG Threshold -->
+    <string name="bg_threshold_smbs_disabled">SMBs are disabled because of BG lower than threshold: %1$d &lt; %2$d</string>
 </resources>
