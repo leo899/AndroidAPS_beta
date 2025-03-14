@@ -91,6 +91,7 @@
     <string name="copy_existing_values">Copy NS settings (if exists)?</string>
     <string name="ns_use_ws_title">Connect to websockets</string>
     <string name="ns_use_ws_summary">Enabling means: faster updates, receiving alarms and announcements and higher battery consumption similar to v1. All other uploaders to NS must use v3 protocol.</string>
+    <string name="ns_ignore_errors">Ignore sync errors</string>
 
     <!-- Tidepool -->
     <string name="key_tidepool_last_end" translatable="false">tidepool_last_end</string>

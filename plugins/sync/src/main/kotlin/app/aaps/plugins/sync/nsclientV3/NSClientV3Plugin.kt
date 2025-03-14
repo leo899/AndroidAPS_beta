@@ -888,6 +888,7 @@ class NSClientV3Plugin @Inject constructor(
                     )
                 )
                 addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.NsClientSlowSync, title = R.string.ns_sync_slow))
+                addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.NsClient3IgnoreErrors, title = R.string.ns_ignore_errors))
             })
         }
     }
