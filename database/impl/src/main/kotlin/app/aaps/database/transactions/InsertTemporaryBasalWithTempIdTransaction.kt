@@ -18,6 +18,7 @@ class InsertTemporaryBasalWithTempIdTransaction(
         if (current == null) {
             temporaryBasal.id = database.temporaryBasalDao.insertNewEntry(temporaryBasal)
             result.inserted.add(temporaryBasal)
+            if (database.changes.isEmpty()) database.changes.add(temporaryBasal)
         }
         return result
     }
