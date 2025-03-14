@@ -212,4 +212,7 @@
     <string name="openapsama_iob_threshold_percent">Пороговый процент maxIOB для SMB\n(iob_threshold_percent)</string>
     <string name="dynisf_velocity">Коэффициент изменения ФЧИ DynamicISF</string>
     <string name="dynisf_settings_title">DynamicISF</string>
+    <string name="enable_smb_bg_threshold">Включить порог ГК для SMB</string>
+    <string name="smb_bg_threshold_title">Порок ГК для SMB</string>
+    <string name="smb_bg_threshold_summary">Когда ГК ниже этого значения, SMB будут отключены.</string>
 </resources>

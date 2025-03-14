@@ -15,4 +15,5 @@
     <string name="dia_too_short">Значение времени действия инс %1$f слишком мало - применено %2$f!</string>
     <string name="fast_acting_insulin_comment">Новорапид, Новолог, Хумалог</string>
     <string name="ultra_fast_acting_insulin_comment">Фиасп</string>
+    <string name="insulin_u200">Режим U200</string>
 </resources>
