@@ -57,7 +57,7 @@ internal interface BolusDao : TraceableDao<Bolus> {
     fun getBolusesIncludingInvalidFromTime(timestamp: Long): Single<List<Bolus>>
 
     // for WS we need 1 record only
-    @Query("SELECT * FROM $TABLE_BOLUSES WHERE unlikely(id > :id) AND likely(pumpId IS NOT NULL) AND likely(type <> :exclude) ORDER BY id ASC limit 1")
+    @Query("SELECT * FROM $TABLE_BOLUSES WHERE unlikely(id > :id) AND likely(type <> :exclude) ORDER BY id ASC limit 1")
     fun getNextModifiedOrNewAfterExclude(id: Long, exclude: Bolus.Type = Bolus.Type.PRIMING): Maybe<Bolus>
 
     @Query("SELECT * FROM $TABLE_BOLUSES WHERE id = :referenceId")

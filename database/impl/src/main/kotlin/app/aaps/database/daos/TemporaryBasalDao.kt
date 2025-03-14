@@ -60,7 +60,7 @@ internal interface TemporaryBasalDao : TraceableDao<TemporaryBasal> {
     fun getTemporaryBasalDataIncludingInvalidFromTime(timestamp: Long): Single<List<TemporaryBasal>>
 
     // for WS we need 1 record only
-    @Query("SELECT * FROM $TABLE_TEMPORARY_BASALS WHERE unlikely(id > :id) AND likely(pumpId IS NOT NULL) ORDER BY id ASC limit 1")
+    @Query("SELECT * FROM $TABLE_TEMPORARY_BASALS WHERE unlikely(id > :id) ORDER BY id ASC limit 1")
     fun getNextModifiedOrNewAfter(id: Long): Maybe<TemporaryBasal>
 
     @Query("SELECT * FROM $TABLE_TEMPORARY_BASALS WHERE id = :referenceId")
