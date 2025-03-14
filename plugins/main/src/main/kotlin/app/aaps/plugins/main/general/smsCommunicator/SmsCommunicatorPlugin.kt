@@ -55,6 +55,7 @@ import app.aaps.core.interfaces.smsCommunicator.SmsCommunicator
 import app.aaps.core.interfaces.sync.XDripBroadcast
 import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.interfaces.utils.DecimalFormatter
+import app.aaps.core.interfaces.utils.Round
 import app.aaps.core.interfaces.utils.SafeParse
 import app.aaps.core.interfaces.utils.fabric.FabricPrivacy
 import app.aaps.core.keys.BooleanKey
@@ -380,7 +381,7 @@ class SmsCommunicatorPlugin @Inject constructor(
             reply = rh.gs(R.string.sms_last_bg) + " " + profileUtil.valueInCurrentUnitsDetect(lastBG.recalculated) + " " + rh.gs(R.string.sms_min_ago, agoMin) + ", "
         }
         val glucoseStatus = glucoseStatusProvider.glucoseStatusData
-        if (glucoseStatus != null) reply += rh.gs(R.string.sms_delta) + " " + profileUtil.fromMgdlToUnits(glucoseStatus.delta) + " " + units + ", "
+        if (glucoseStatus != null) reply += rh.gs(R.string.sms_delta) + " " + profileUtil.fromMgdlToStringInUnits(glucoseStatus.delta) + " " + units + ", "
         val bolusIob = iobCobCalculator.calculateIobFromBolus().round()
         val basalIob = iobCobCalculator.calculateIobFromTempBasalsIncludingConvertedExtended().round()
         val cobInfo = iobCobCalculator.getCobInfo("SMS COB")
