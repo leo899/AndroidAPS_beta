@@ -1250,14 +1250,11 @@ class SmsCommunicatorPlugin @Inject constructor(
 
         try {
             aapsLogger.debug(LTag.SMS, "Sending SMS to " + sms.phoneNumber + ": " + sms.text)
-            if (sms.text.toByteArray().size <= 140) smsManager?.sendTextMessage(sms.phoneNumber, null, sms.text, null, null)
-            else {
-                val parts = smsManager?.divideMessage(sms.text)
-                smsManager?.sendMultipartTextMessage(
-                    sms.phoneNumber, null, parts,
-                    null, null
-                )
-            }
+            val parts = smsManager?.divideMessage(sms.text)
+            smsManager?.sendMultipartTextMessage(
+                sms.phoneNumber, null, parts,
+                null, null
+            )
             messages.add(sms)
         } catch (e: IllegalArgumentException) {
             return if (e.message == "Invalid message body") {
