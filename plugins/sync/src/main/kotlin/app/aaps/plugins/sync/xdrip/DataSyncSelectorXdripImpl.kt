@@ -191,6 +191,7 @@ class DataSyncSelectorXdripImpl @Inject constructor(
         }
     }
 
+    private val blacklistedBoluses = mutableListOf<Long>()
     private fun processChangedBoluses() {
         var progress: String
         val lastDbId = persistenceLayer.getLastBolusId() ?: 0L
@@ -205,8 +206,11 @@ class DataSyncSelectorXdripImpl @Inject constructor(
             progress = "$startId/$lastDbId"
             persistenceLayer.getNextSyncElementBolus(startId).blockingGet()?.let { bolus ->
                 aapsLogger.info(LTag.XDRIP, "Loading Bolus data Start: $startId ${bolus.first} forID: ${bolus.second.id} ")
-                if (!isOld(bolus.first.timestamp))
+                if (!isOld(bolus.first.timestamp) && bolus.first.id !in blacklistedBoluses)
                     preparedTreatments.add(DataSyncSelector.PairBolus(bolus.first, bolus.second.id))
+
+                if (bolus.first.ids.pumpId == null) blacklistedBoluses.add(bolus.first.id)
+                if (blacklistedBoluses.size > 50) blacklistedBoluses.removeAt(0)
                 sendTreatments(force = false, progress)
                 confirmLastBolusIdIfGreater(bolus.second.id)
             } ?: break
@@ -396,6 +400,7 @@ class DataSyncSelectorXdripImpl @Inject constructor(
         }
     }
 
+    private val blacklistedTemporaryBasals = mutableListOf<Long>()
     private fun processChangedTemporaryBasals() {
         var progress: String
         val lastDbId = persistenceLayer.getLastTemporaryBasalId() ?: 0L
@@ -410,8 +415,11 @@ class DataSyncSelectorXdripImpl @Inject constructor(
             progress = "$startId/$lastDbId"
             persistenceLayer.getNextSyncElementTemporaryBasal(startId).blockingGet()?.let { tb ->
                 aapsLogger.info(LTag.XDRIP, "Loading TemporaryBasal data Start: $startId ${tb.first} forID: ${tb.second.id} ")
-                if (!isOld(tb.first.timestamp))
+                if (!isOld(tb.first.timestamp) && tb.first.id !in blacklistedTemporaryBasals)
                     preparedTreatments.add(DataSyncSelector.PairTemporaryBasal(tb.first, tb.second.id))
+
+                if (tb.first.ids.pumpId == null) blacklistedTemporaryBasals.add(tb.first.id)
+                if (blacklistedTemporaryBasals.size > 50) blacklistedTemporaryBasals.removeAt(0)
                 sendTreatments(force = false, progress)
                 confirmLastTemporaryBasalIdIfGreater(tb.second.id)
             } ?: break
