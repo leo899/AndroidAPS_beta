@@ -56,7 +56,7 @@ abstract class Objective(injector: HasAndroidInjector, spName: String, @StringRe
         this.gate = gate
         startedOn = sp.getLong("Objectives_" + spName + "_started", 0L)
         accomplishedOn = sp.getLong("Objectives_" + spName + "_accomplished", 0L)
-        if (accomplishedOn - dateUtil.now() > T.hours(3).msecs() || startedOn - dateUtil.now() > T.hours(3).msecs()) { // more than 3 hours in the future
+        if (accomplishedOn - dateUtil.now() > T.seconds(5).msecs() || startedOn - dateUtil.now() > T.seconds(5).msecs()) { // more than 3 hours in the future
             startedOn = 0
             accomplishedOn = 0
         }
